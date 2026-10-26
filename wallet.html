@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SPLUG — Wallet</title>
+  <link rel="stylesheet" href="/assets/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/index.html">⚡ S<span>PLUG</span></a>
+    <div class="balance-chip" id="balanceChip" hidden>₦0.00</div>
+  </header>
+
+  <main class="container">
+    <section class="card center">
+      <p class="muted">Wallet balance</p>
+      <h1 id="balanceAmount" style="font-size:2.2rem;margin-top:6px;">₦0.00</h1>
+    </section>
+
+    <div class="grid-2">
+      <section class="card">
+        <h3 style="margin-bottom:14px;">📥 Fund wallet</h3>
+        <form id="depositForm">
+          <label>Amount (₦) — minimum 1,000
+            <input id="depositAmount" type="number" min="1000" step="50" required placeholder="e.g. 2000" />
+          </label>
+          <button class="btn btn-primary" type="submit">Pay via Afrstar</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h3 style="margin-bottom:14px;">📤 Withdraw to bank</h3>
+        <form id="withdrawForm">
+          <label>Amount (₦) — minimum 1,000
+            <input id="withdrawAmount" type="number" min="1000" step="100" required />
+          </label>
+          <label>Bank code
+            <input id="bankCode" required placeholder="e.g. 058" />
+          </label>
+          <label>Account number
+            <input id="accountNumber" required inputmode="numeric" />
+          </label>
+          <label>Account name
+            <input id="accountName" required />
+          </label>
+          <button class="btn btn-primary" type="submit">Withdraw</button>
+        </form>
+      </section>
+    </div>
+
+    <section class="card">
+      <h3 style="margin-bottom:8px;">Recent transactions</h3>
+      <div id="txnList"><p class="muted">Loading…</p></div>
+    </section>
+  </main>
+
+  <script src="/assets/js/common.js"></script>
+  <script src="/assets/js/wallet.js"></script>
+</body>
+</html>
