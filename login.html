@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SPLUG — Login</title>
+  <link rel="stylesheet" href="/assets/css/style.css" />
+</head>
+<body data-mode="login">
+  <header class="topbar">
+    <a class="brand" href="/index.html">⚡ S<span>PLUG</span></a>
+  </header>
+
+  <main class="container">
+    <section class="card" style="max-width:420px;margin:40px auto;">
+      <h2 style="margin-bottom:6px;">Welcome back</h2>
+      <p class="muted" style="margin-bottom:20px;">Login to buy numbers and receive OTPs.</p>
+      <form id="authForm">
+        <label>Email
+          <input name="email" type="email" required placeholder="you@example.com" />
+        </label>
+        <label>Password
+          <input name="password" type="password" required placeholder="••••••••" />
+        </label>
+        <button class="btn btn-primary" type="submit">Login</button>
+      </form>
+      <p class="muted" style="margin-top:18px;text-align:center;">
+        New here? <a href="/register.html">Create an account</a>
+      </p>
+    </section>
+  </main>
+
+  <script src="/assets/js/common.js"></script>
+  <script src="/assets/js/auth.js"></script>
+</body>
+</html>
