@@ -1,4 +1,4 @@
-/* SPLUG — dashboard: buy numbers, poll for OTP, cancel + refund */
+/* SPLUG — dashboard: buy numbers, poll for OTP, cancel + refund (v2) */
 
 (async function () {
   if (!requireAuthPage()) return;
@@ -10,20 +10,60 @@
   let pollTimer = null;
 
   /* ---------- catalogue (cached in sessionStorage) ---------- */
-  let cat = null;
-  try { cat = JSON.parse(sessionStorage.getItem('splug_catalog') || 'null'); } catch {}
-  if (!cat) {
-    const data = await apiCall(API.numbers, { query: { action: 'services' } });
-    cat = {
-      services: (data.services || [])
-        .map((s) => ({ id: s.ID, name: s.Name }))
-        .sort((a, b) => a.name.localeCompare(b.name)),
-      countries: (data.countries || [])
-        .map((c) => ({ id: c.ID, name: c.Name }))
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    };
-    try { sessionStorage.setItem('splug_catalog', JSON.stringify(cat)); } catch {}
+  const pick = (item, keys) => {
+    for (const k of keys) if (item && item[k] != null && item[k] !== '') return item[k];
+    return null;
+  };
+
+  async function loadCatalog() {
+    // try cache first
+    try {
+      const cached = JSON.parse(sessionStorage.getItem('splug_catalog') || 'null');
+      if (cached && cached.services.length && cached.countries.length) return cached;
+    } catch {}
+
+    try {
+      const data = await apiCall(API.numbers, { query: { action: 'services' } });
+      const cat = {
+        services: (data.services || [])
+          .map((s) => ({
+            id: pick(s, ['ID', 'id', 'service_id', 'serviceID']),
+            name: pick(s, ['Name', 'name', 'service_name']) || 'Unknown',
+          }))
+          .filter((s) => s.id)
+          .sort((a, b) => a.name.localeCompare(b.name)),
+        countries: (data.countries || [])
+          .map((c) => ({
+            id: pick(c, ['ID', 'id', 'country_id', 'countryID']),
+            name: pick(c, ['Name', 'name', 'country_name']) || 'Unknown',
+          }))
+          .filter((c) => c.id)
+          .sort((a, b) => a.name.localeCompare(b.name)),
+      };
+      if (!cat.services.length || !cat.countries.length) {
+        throw new Error('Catalogue came back empty — check your SMSPool key/balance');
+      }
+      try { sessionStorage.setItem('splug_catalog', JSON.stringify(cat)); } catch {}
+      return cat;
+    } catch (err) {
+      toast(`Couldn't load services: ${err.message}`, 'error');
+      addRetryButton();
+      throw err;
+    }
   }
+
+  function addRetryButton() {
+    if ($('retryBtn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'retryBtn';
+    btn.className = 'btn btn-ghost';
+    btn.style.marginTop = '10px';
+    btn.textContent = '↻ Retry loading services';
+    btn.addEventListener('click', () => window.location.reload());
+    $('buyBtn').after(btn);
+  }
+
+  const cat = await loadCatalog();
 
   function renderServices() {
     const q = ($('serviceFilter').value || '').toLowerCase();
