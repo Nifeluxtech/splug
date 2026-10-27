@@ -24,6 +24,7 @@
 
       const data = await apiCall(API.auth, { method: 'POST', body });
       store.token = data.access_token;
+      store.refreshToken = data.refresh_token;
       window.location.href = '/dashboard.html';
     } catch (err) {
       toast(err.message, 'error');
