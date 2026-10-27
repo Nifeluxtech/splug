@@ -1,64 +1,79 @@
 /* SPLUG — history: orders (numbers + OTPs) & transactions */
-
 (async function () {
   if (!requireAuthPage()) return;
-  mountHeader('history');
-  mountFooter('history');
-  refreshBalanceChip();
+  mountHeader('history'); mountTabbar('history'); refreshBalanceChip();
 
   const $ = (id) => document.getElementById(id);
+  let orders = [], filter = 'all';
 
-  document.querySelectorAll('.tab').forEach((tab) => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
-      tab.classList.add('active');
-      const showOrders = tab.dataset.tab === 'orders';
-      $('ordersPanel').hidden = !showOrders;
-      $('txnsPanel').hidden = showOrders;
-    });
+  /* ---------- tabs ---------- */
+  function showTab(which) {
+    const isOrders = which === 'orders';
+    $('tabOrders').setAttribute('aria-selected', String(isOrders));
+    $('tabTxns').setAttribute('aria-selected', String(!isOrders));
+    $('ordersPanel').hidden = !isOrders; $('txnsPanel').hidden = isOrders;
+  }
+  $('tabOrders').addEventListener('click', () => showTab('orders'));
+  $('tabTxns').addEventListener('click', () => showTab('txns'));
+
+  /* ---------- orders ---------- */
+  const matches = (o) => filter === 'all' || (filter === 'closed' ? ['cancelled', 'expired'].includes(o.status) : o.status === filter);
+
+  function orderRow(o) {
+    const status = String(o.status || 'pending').toLowerCase();
+    return `
+      <li class="row">
+        <div>
+          <div class="row-title">${esc(o.service)} <span class="sep">·</span> ${esc(o.country)}</div>
+          <div class="row-sub">${o.phone_number ? `<button class="copy-inline" type="button" data-copy="${esc(o.phone_number)}" title="Copy number">${esc(o.phone_number)}</button> · ` : ''}${esc(fmtDate(o.created_at))}</div>
+        </div>
+        ${o.otp
+          ? `<button class="otp-pill has-code copy-inline" type="button" data-copy="${esc(o.otp)}" title="Copy code">${esc(o.otp)}</button>`
+          : '<div class="otp-pill" title="No code received">––––</div>'}
+        <div class="row-end"><span class="badge ${esc(status)}">${esc(titleCase(status))}</span><span class="amount neg">${naira(o.price)}</span></div>
+      </li>`;
+  }
+
+  function renderOrders() {
+    const rows = orders.filter(matches);
+    if (!orders.length) {
+      $('orderFilters').hidden = true;
+      $('ordersList').innerHTML = emptyState({ icon: 'phone', title: 'No orders yet', text: 'Buy your first number and it will be listed here with its code.', href: '/dashboard.html', cta: 'Get a number' });
+      return;
+    }
+    $('orderFilters').hidden = false;
+    $('ordersList').innerHTML = rows.length
+      ? `<ul class="list">${rows.map(orderRow).join('')}</ul>`
+      : emptyState({ icon: 'inbox', title: 'Nothing in this view', text: 'Try a different filter.' });
+  }
+
+  document.querySelectorAll('#orderFilters .chip').forEach((chip) => chip.addEventListener('click', () => {
+    filter = chip.dataset.filter;
+    document.querySelectorAll('#orderFilters .chip').forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+    renderOrders();
+  }));
+
+  // tap a number or code to copy it
+  document.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-copy]'); if (!el) return;
+    copyText(el.dataset.copy).then(() => toast('Copied'));
   });
 
   try {
     const data = await apiCall(API.history, { query: { action: 'orders' } });
-    $('ordersList').innerHTML =
-      (data.orders || [])
-        .map(
-          (o) => `
-        <div class="list-row">
-          <div>
-            <strong>${o.service}</strong> <span class="muted">• ${o.country}</span><br/>
-            <span class="muted small">${o.phone_number || ''} • ${fmtDate(o.created_at)}</span>
-          </div>
-          <div class="otp-pill">${o.otp || '—'}</div>
-          <div>
-            <span class="badge ${o.status}">${o.status}</span>
-            <div class="muted small">${naira(o.price)}</div>
-          </div>
-        </div>`
-        )
-        .join('') || '<p class="muted">No orders yet — buy your first number on the dashboard.</p>';
+    orders = data.orders || []; renderOrders();
   } catch (err) {
-    $('ordersList').innerHTML = `<p class="muted">${err.message}</p>`;
+    $('ordersList').innerHTML = emptyState({ icon: 'alert', title: 'Could not load orders', text: err.message });
   }
 
+  /* ---------- transactions ---------- */
   try {
     const data = await apiCall(API.history, { query: { action: 'transactions' } });
-    $('txnsList').innerHTML =
-      (data.transactions || [])
-        .map((t) => {
-          const negative = t.type === 'withdrawal' || t.type === 'purchase';
-          return `
-        <div class="list-row">
-          <div>
-            <strong>${t.type}</strong> <span class="muted">${t.description || ''}</span><br/>
-            <span class="muted small">${t.reference || ''} • ${fmtDate(t.created_at)}</span>
-          </div>
-          <div class="${negative ? 'neg' : 'pos'}">${negative ? '−' : '+'}${naira(t.amount)}</div>
-          <div class="muted small">${t.status}</div>
-        </div>`;
-        })
-        .join('') || '<p class="muted">No transactions yet.</p>';
+    const txns = data.transactions || [];
+    $('txnsList').innerHTML = txns.length
+      ? `<ul class="list">${txns.map(txnRow).join('')}</ul>`
+      : emptyState({ icon: 'wallet', title: 'No transactions yet', text: 'Fund your wallet to get started.', href: '/wallet.html', cta: 'Add funds' });
   } catch (err) {
-    $('txnsList').innerHTML = `<p class="muted">${err.message}</p>`;
+    $('txnsList').innerHTML = emptyState({ icon: 'alert', title: 'Could not load transactions', text: err.message });
   }
 })();
