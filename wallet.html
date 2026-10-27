@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#0A7A47" />
   <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=4" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=5" />
 </head>
 <body>
   <header class="topbar"></header>
@@ -57,10 +57,11 @@
                 <div class="input-money"><input class="input" id="withdrawAmount" type="number" inputmode="numeric" min="1000" step="100" required placeholder="5,000" /></div>
                 <p class="hint">Minimum ₦1,000.</p>
               </div>
-              <div class="row-2">
-                <div class="field"><label for="bankCode">Bank code</label><input class="input" id="bankCode" required inputmode="numeric" placeholder="e.g. 058" autocomplete="off" /></div>
-                <div class="field"><label for="accountNumber">Account number</label><input class="input" id="accountNumber" required inputmode="numeric" maxlength="10" placeholder="10 digits" autocomplete="off" /></div>
+              <div class="field">
+                <span class="label" id="bankLabel">Bank <span class="opt" id="bankChosen"></span></span>
+                <div id="bankPicker" aria-labelledby="bankLabel"></div>
               </div>
+              <div class="field"><label for="accountNumber">Account number</label><input class="input" id="accountNumber" required inputmode="numeric" maxlength="10" pattern="[0-9]*" placeholder="10 digits" autocomplete="off" /></div>
               <div class="field"><label for="accountName">Account name</label><input class="input" id="accountName" required autocomplete="off" placeholder="Name on the account" /></div>
               <button class="btn btn-primary btn-lg btn-block" type="submit">Withdraw to bank</button>
             </form>
@@ -77,7 +78,7 @@
       </section>
     </div>
   </main>
-  <script src="/assets/js/common.js?v=4"></script>
-  <script src="/assets/js/wallet.js?v=4"></script>
+  <script src="/assets/js/common.js?v=5"></script>
+  <script src="/assets/js/wallet.js?v=5"></script>
 </body>
 </html>
