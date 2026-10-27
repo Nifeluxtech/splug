@@ -51,7 +51,7 @@ module.exports = handler(async (req, res) => {
 
     return ok({
       reference,
-      paymentUrl: gateway.payment_url || gateway.checkout_url || gateway.link || null,
+      paymentUrl: [gateway, gateway?.data, gateway?.result].map((g) => g && (g.payment_url || g.paymentUrl || g.checkout_url || g.pay_url || g.link || g.url)).find(Boolean) || null,
       gateway,
     });
   }

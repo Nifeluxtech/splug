@@ -19,9 +19,9 @@ function names(body = {}) {
 async function premiumQuote(service, country) {
   let pricing;
   try {
-    pricing = await smspool.pricing(service, country);
-  } catch {
-    const e = new Error('Could not fetch SMSPool price — try another service or country'); e.status = 502; throw e;
+    pricing = await smspool.price(service, country);
+  } catch (err) {
+    const e = new Error(err?.message || 'Could not fetch the priority price. Try another service or country.'); e.status = 409; throw e;
   }
   const usd = Number(pricing?.price ?? pricing?.cost ?? pricing?.[0]?.price ?? pricing?.[0]?.cost ?? 0);
   if (!usd) {
