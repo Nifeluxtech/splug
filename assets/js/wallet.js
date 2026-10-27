@@ -63,18 +63,32 @@
     setLoading(btn, false);
   });
 
+  /* ---------- bank picker ---------- */
+  const bankPicker = createPicker($('bankPicker'), { placeholder: 'Search your bank, e.g. GTBank, Opay', label: 'Banks', onSelect: (b) => { $('bankChosen').textContent = '· ' + b.name; } });
+  let bankItems = [];
+  bankPicker.lock('Loading banks…');
+  (async () => {
+    try {
+      const data = await apiCall(API.wallet, { query: { action: 'banks' } });
+      bankItems = (data.banks || []).map((b) => ({ id: b.code, name: b.name }));
+      bankPicker.setItems(bankItems);
+    } catch (err) { bankPicker.lock('Could not load banks. Refresh the page.'); }
+  })();
+
   /* ---------- withdraw ---------- */
   $('withdrawForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const amount = Number($('withdrawAmount').value);
-    const bankCode = $('bankCode').value.trim(), accountNumber = $('accountNumber').value.trim(), accountName = $('accountName').value.trim();
+    const bank = bankPicker.selected, bankCode = bank?.id || '', accountNumber = $('accountNumber').value.trim(), accountName = $('accountName').value.trim();
     if (!amount || amount < 1000) { toast('Minimum withdrawal is ₦1,000.', 'error'); $('withdrawAmount').focus(); return; }
     if (balance.value != null && amount > balance.value) { toast(`You can withdraw up to ${naira(balance.value)}.`, 'error'); return; }
-    if (!bankCode || !/^\d{10}$/.test(accountNumber) || !accountName) { toast('Check the bank code, a 10-digit account number and the account name.', 'error'); return; }
+    if (!bank) { toast('Choose your bank from the list.', 'error'); return; }
+    if (!/^\d{10}$/.test(accountNumber)) { toast('Account number must be 10 digits.', 'error'); $('accountNumber').focus(); return; }
+    if (!accountName) { toast('Enter the account name.', 'error'); $('accountName').focus(); return; }
 
     const ok = await confirmDialog({
       title: 'Confirm withdrawal',
-      rows: [['Amount', naira(amount)], ['Account name', accountName], ['Account number', accountNumber], ['Bank code', bankCode]],
+      rows: [['Amount', naira(amount)], ['Account name', accountName], ['Account number', accountNumber], ['Bank', bank.name]],
       warning: 'Bank details can’t be changed after you submit. Check them carefully.',
       confirmText: 'Withdraw',
     });
@@ -85,7 +99,7 @@
     try {
       const data = await apiCall(API.wallet, { method: 'POST', query: { action: 'withdraw' }, body: { amount, bankCode, accountNumber, accountName } });
       toast(`Withdrawal submitted (ref ${data.reference}). Funds are held until it’s confirmed.`);
-      $('withdrawForm').reset(); loadBalance(); loadTxns();
+      $('withdrawForm').reset(); bankPicker.setItems(bankItems); $('bankChosen').textContent = ''; loadBalance(); loadTxns();
     } catch (err) { toast(err.message, 'error'); }
     setLoading(btn, false);
   });
