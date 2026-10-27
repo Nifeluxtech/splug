@@ -1,26 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SPLUG — Private OTP numbers</title>
-  <meta name="description" content="Buy affordable private OTP numbers in naira with budget and priority routes." />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>SPLUG — Private OTP numbers, priced in naira</title>
+  <meta name="description" content="Buy a temporary number for verification codes. Pick a budget or priority route and see the exact naira price before you pay." />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <meta name="theme-color" content="#0A7A47" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/css/style.css" />
 </head>
 <body>
-  <header class="topbar"><a class="brand" href="/index.html"><span class="brand-mark">✦</span> S<span>PLUG</span></a><div class="header-right"><a class="btn btn-ghost btn-sm" href="/login.html">Sign in</a></div></header>
+  <header class="topbar"></header>
+
   <main class="container">
     <section class="hero">
-      <span class="eyebrow">A cleaner way to verify</span>
-      <h1>Private numbers.<br><span style="color:var(--cyan)">Clear prices.</span></h1>
-      <p>Get a temporary verification number for the service you need. Choose between a budget route and a priority route, then see the exact naira price before buying.</p>
-      <div class="cta-row"><a class="btn btn-primary" href="/register.html">Create free account</a><a class="btn btn-ghost" href="/login.html">I already have an account</a></div>
+      <div>
+        <h1>Get the code without giving out your number.</h1>
+        <p class="lead">Buy a temporary number for the service you need to verify. You see the exact naira price first, and the code shows up on your dashboard.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary btn-lg" href="/register.html">Create free account</a>
+          <a class="btn btn-secondary btn-lg" href="/login.html">Sign in</a>
+        </div>
+        <p class="hero-note">Fund your wallet in naira. Cancel an unused number and get a refund.</p>
+      </div>
+
+      <div aria-hidden="true">
+        <div class="ticket" data-state="received">
+          <div class="ticket-top">
+            <div class="ticket-meta"><span class="ticket-label">Your number</span><span class="badge received"><i class="dot"></i>Received</span></div>
+            <div class="ticket-service">WhatsApp</div>
+            <div class="ticket-number"><span class="num">+44 7•• ••• 482</span></div>
+          </div>
+          <div class="ticket-bottom">
+            <div class="ticket-label">Verification code</div>
+            <div class="otp"><span>4</span><span>8</span><span>2</span><span>9</span><span>1</span><span>7</span></div>
+            <p class="ticket-note">Appears here the moment the SMS arrives.</p>
+          </div>
+        </div>
+        <p class="example-tag">Example only. Real numbers and codes appear in your dashboard.</p>
+      </div>
     </section>
-    <section class="features">
-      <div class="feature"><div class="icon">₿</div><h3>Budget route</h3><p>Choose your service first, then your country. SPLUG finds the lowest available price and shows it before checkout.</p></div>
-      <div class="feature"><div class="icon">✦</div><h3>Priority route</h3><p>Switch to a priority route when you need wider availability or another delivery option.</p></div>
-      <div class="feature"><div class="icon">₦</div><h3>Wallet in naira</h3><p>Fund your wallet, approve the quoted amount, and receive the OTP in the same dashboard.</p></div>
+
+    <section class="section" id="how">
+      <div class="section-head">
+        <h2>From service to code in three steps</h2>
+        <p>No haggling, no surprises at checkout.</p>
+      </div>
+      <ol class="steps">
+        <li><h3>Choose what to verify</h3><p>Pick your service, then your country. Search the list if you know the name.</p></li>
+        <li><h3>See the price in naira</h3><p>SPLUG shows the exact amount before anything is charged to your wallet.</p></li>
+        <li><h3>Receive your code</h3><p>Keep the page open. The OTP appears automatically, ready to copy.</p></li>
+      </ol>
+    </section>
+
+    <section class="section" id="routes">
+      <div class="section-head">
+        <h2>Two routes, one dashboard</h2>
+        <p>Switch routes any time. The price you see is the price you pay.</p>
+      </div>
+      <div class="routes-compare">
+        <article class="route-card">
+          <h3>Budget route</h3>
+          <p>For everyday verifications where price matters most.</p>
+          <ul class="checks">
+            <li><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Lowest available price for your service and country</span></li>
+            <li><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Service first, then country</span></li>
+          </ul>
+        </article>
+        <article class="route-card alt">
+          <h3>Priority route</h3>
+          <p>For when the budget route doesn't have what you need.</p>
+          <ul class="checks">
+            <li><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Wider availability across services and countries</span></li>
+            <li><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>An alternative delivery option</span></li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="closer">
+        <div>
+          <h2>Ready for your first number?</h2>
+          <p>Create an account, fund your wallet, and buy when you're ready.</p>
+        </div>
+        <a class="btn btn-primary btn-lg" href="/register.html">Create free account</a>
+      </div>
     </section>
   </main>
-  <footer class="site-footer">SPLUG keeps your personal number private. <a href="/login.html">Sign in</a> or <a href="/register.html">create an account</a>.</footer>
+
+  <footer class="site-footer">
+    <span>SPLUG keeps your personal number private.</span>
+    <span><a href="/login.html">Sign in</a> · <a href="/register.html">Create account</a></span>
+  </footer>
+  <script src="/assets/js/common.js"></script>
+  <script>mountHeader('public');</script>
 </body>
 </html>

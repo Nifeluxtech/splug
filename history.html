@@ -1,9 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>SPLUG — History</title><link rel="stylesheet" href="/assets/css/style.css" /></head>
-<body><header class="topbar"></header>
-<main class="container"><div class="page-heading"><span class="eyebrow">Everything you have done</span><h1>History</h1><p class="muted">Review your numbers, OTPs, purchases and wallet movements.</p></div>
-  <div class="tabs"><button class="tab active" data-tab="orders">Orders</button><button class="tab" data-tab="txns">Transactions</button></div>
-  <section class="card" id="ordersPanel"><div id="ordersList"><p class="muted">Loading…</p></div></section>
-  <section class="card" id="txnsPanel" hidden><div id="txnsList"><p class="muted">Loading…</p></div></section>
-</main><script src="/assets/js/common.js"></script><script src="/assets/js/history.js"></script></body></html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>History — SPLUG</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <meta name="theme-color" content="#0A7A47" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/css/style.css" />
+</head>
+<body>
+  <header class="topbar"></header>
+  <main class="container">
+    <div class="page-head">
+      <h1>History</h1>
+      <p>Your numbers, codes, purchases and wallet movements.</p>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="History type">
+      <button type="button" role="tab" id="tabOrders" aria-selected="true" aria-controls="ordersPanel">Orders</button>
+      <button type="button" role="tab" id="tabTxns" aria-selected="false" aria-controls="txnsPanel">Transactions</button>
+    </div>
+
+    <section class="card" id="ordersPanel" role="tabpanel" aria-labelledby="tabOrders">
+      <div class="filters" id="orderFilters" role="group" aria-label="Filter orders" hidden>
+        <button type="button" class="chip" data-filter="all" aria-pressed="true">All</button>
+        <button type="button" class="chip" data-filter="received" aria-pressed="false">Received</button>
+        <button type="button" class="chip" data-filter="pending" aria-pressed="false">Waiting</button>
+        <button type="button" class="chip" data-filter="closed" aria-pressed="false">Cancelled or expired</button>
+      </div>
+      <div id="ordersList"><div class="skeleton" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
+    </section>
+
+    <section class="card" id="txnsPanel" role="tabpanel" aria-labelledby="tabTxns" hidden>
+      <div id="txnsList"><div class="skeleton" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
+    </section>
+  </main>
+  <script src="/assets/js/common.js"></script>
+  <script src="/assets/js/history.js"></script>
+</body>
+</html>

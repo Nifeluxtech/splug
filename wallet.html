@@ -1,13 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>SPLUG — Wallet</title><link rel="stylesheet" href="/assets/css/style.css" /></head>
-<body><header class="topbar"></header>
-<main class="container">
-  <div class="page-heading"><span class="eyebrow">Your money, in one place</span><h1>Wallet</h1><p class="muted">Fund your balance before you buy. Every purchase shows its exact price first.</p></div>
-  <section class="card center"><p class="muted">Available balance</p><h1 id="balanceAmount" style="font-size:2.6rem;margin-top:7px">₦0.00</h1></section>
-  <div class="grid-2">
-    <section class="card"><span class="eyebrow">Add funds</span><h2 style="margin:8px 0 16px">Fund wallet</h2><form id="depositForm"><label>Amount (₦) — minimum 1,000<input id="depositAmount" type="number" min="1000" step="50" required placeholder="e.g. 2,000" /></label><button class="btn btn-primary" type="submit">Pay via Afrstar</button></form></section>
-    <section class="card"><span class="eyebrow">Cash out</span><h2 style="margin:8px 0 16px">Withdraw to bank</h2><form id="withdrawForm"><label>Amount (₦) — minimum 1,000<input id="withdrawAmount" type="number" min="1000" step="100" required /></label><label>Bank code<input id="bankCode" required placeholder="e.g. 058" /></label><label>Account number<input id="accountNumber" required inputmode="numeric" /></label><label>Account name<input id="accountName" required /></label><button class="btn btn-primary" type="submit">Withdraw</button></form></section>
-  </div>
-  <section class="card"><div class="selection-head"><div><span class="eyebrow">Ledger</span><h2 style="margin-top:6px">Recent transactions</h2></div><a class="btn btn-ghost btn-sm" href="/history.html">View history</a></div><div id="txnList"><p class="muted">Loading…</p></div></section>
-</main><script src="/assets/js/common.js"></script><script src="/assets/js/wallet.js"></script></body></html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Wallet — SPLUG</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <meta name="theme-color" content="#0A7A47" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/css/style.css" />
+</head>
+<body>
+  <header class="topbar"></header>
+  <main class="container">
+    <div class="page-head">
+      <h1>Wallet</h1>
+      <p>Fund your balance before you buy. Every purchase shows its exact price first.</p>
+    </div>
+
+    <div class="wallet-grid">
+      <div>
+        <section class="balance-card" aria-label="Balance">
+          <span class="ticket-label">Available balance</span>
+          <div class="balance-amount" id="balanceAmount">₦0.00</div>
+          <p>Withdrawals are held until they are confirmed.</p>
+        </section>
+
+        <section class="card" aria-label="Move money">
+          <div class="segmented" role="tablist" aria-label="Wallet action">
+            <button type="button" role="tab" id="tabDeposit" aria-selected="true" aria-controls="paneDeposit">Add funds</button>
+            <button type="button" role="tab" id="tabWithdraw" aria-selected="false" aria-controls="paneWithdraw">Withdraw</button>
+          </div>
+
+          <div class="pane" id="paneDeposit" role="tabpanel" aria-labelledby="tabDeposit">
+            <form id="depositForm" novalidate>
+              <div class="field">
+                <label for="depositAmount">Amount</label>
+                <div class="input-money"><input class="input" id="depositAmount" type="number" inputmode="numeric" min="1000" step="50" required placeholder="2,000" /></div>
+                <p class="hint">Minimum ₦1,000.</p>
+              </div>
+              <div class="chips" role="group" aria-label="Quick amounts">
+                <button type="button" class="chip" data-amt="1000">₦1,000</button>
+                <button type="button" class="chip" data-amt="2000">₦2,000</button>
+                <button type="button" class="chip" data-amt="5000">₦5,000</button>
+                <button type="button" class="chip" data-amt="10000">₦10,000</button>
+              </div>
+              <button class="btn btn-primary btn-lg btn-block" type="submit">Continue to payment</button>
+              <p class="hint">You'll finish paying on Afrstar's secure page, then come back here.</p>
+            </form>
+          </div>
+
+          <div class="pane" id="paneWithdraw" role="tabpanel" aria-labelledby="tabWithdraw" hidden>
+            <form id="withdrawForm" novalidate>
+              <div class="field">
+                <label for="withdrawAmount">Amount</label>
+                <div class="input-money"><input class="input" id="withdrawAmount" type="number" inputmode="numeric" min="1000" step="100" required placeholder="5,000" /></div>
+                <p class="hint">Minimum ₦1,000.</p>
+              </div>
+              <div class="row-2">
+                <div class="field"><label for="bankCode">Bank code</label><input class="input" id="bankCode" required inputmode="numeric" placeholder="e.g. 058" autocomplete="off" /></div>
+                <div class="field"><label for="accountNumber">Account number</label><input class="input" id="accountNumber" required inputmode="numeric" maxlength="10" placeholder="10 digits" autocomplete="off" /></div>
+              </div>
+              <div class="field"><label for="accountName">Account name</label><input class="input" id="accountName" required autocomplete="off" placeholder="Name on the account" /></div>
+              <button class="btn btn-primary btn-lg btn-block" type="submit">Withdraw to bank</button>
+            </form>
+          </div>
+        </section>
+      </div>
+
+      <section class="card" aria-label="Recent transactions">
+        <div class="card-head">
+          <h2>Recent transactions</h2>
+          <a class="btn btn-secondary btn-sm" href="/history.html">Full history</a>
+        </div>
+        <div id="txnList"><div class="skeleton" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
+      </section>
+    </div>
+  </main>
+  <script src="/assets/js/common.js"></script>
+  <script src="/assets/js/wallet.js"></script>
+</body>
+</html>

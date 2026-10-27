@@ -2,60 +2,72 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SPLUG — Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Get a number — SPLUG</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <meta name="theme-color" content="#0A7A47" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/css/style.css" />
 </head>
 <body>
   <header class="topbar"></header>
   <main class="container">
-    <section class="dashboard-hero">
-      <div>
-        <span class="eyebrow">Private verification, on demand</span>
-        <h1>Get a number.<br><span style="color:var(--cyan)">Keep your number private.</span></h1>
-        <p class="muted">Choose a server, select your service and country, then review the exact naira price before you pay.</p>
-      </div>
-    </section>
+    <div class="page-head">
+      <h1>Get a number</h1>
+      <p>Choose a route, a service and a country. You'll see the exact price before you pay.</p>
+    </div>
 
-    <section class="card">
-      <div class="server-tabs" role="tablist" aria-label="Number server">
-        <button class="server-tab active" data-provider="cheap" role="tab">
-          <span class="server-icon">₿</span><span><strong>Budget server</strong><small>Lower price · everyday use</small></span>
-        </button>
-        <button class="server-tab" data-provider="premium" role="tab">
-          <span class="server-icon">✦</span><span><strong>Priority server</strong><small>Wider availability · faster choice</small></span>
-        </button>
-      </div>
+    <div class="dash-grid">
+      <section class="card" aria-label="Number builder">
+        <div class="step" id="stepRoute">
+          <h2 class="step-title"><span class="step-n">1</span>Route</h2>
+          <div class="segmented routes" role="radiogroup" aria-label="Route">
+            <button type="button" class="route-opt" role="radio" aria-checked="true" data-provider="cheap"><strong>Budget</strong><small>Lowest price, everyday use</small></button>
+            <button type="button" class="route-opt" role="radio" aria-checked="false" data-provider="premium"><strong>Priority</strong><small>Wider availability</small></button>
+          </div>
+        </div>
 
-      <div class="selection-head">
-        <div><h2 id="providerTitle">Budget numbers</h2><p class="muted" id="providerDescription">Pick a service first, then choose a country. We’ll use the lowest available price.</p></div>
-        <span class="provider-pill" id="providerPill">BUDGET ROUTE</span>
-      </div>
+        <div class="step" id="stepService">
+          <h2 class="step-title"><span class="step-n">2</span>Service <span class="step-value" id="serviceValue"></span></h2>
+          <div id="servicePicker"></div>
+        </div>
 
-      <div class="grid-2">
-        <label>Service
-          <input id="serviceFilter" placeholder="Search service… e.g. WhatsApp" autocomplete="off" />
-          <select id="serviceSelect"></select>
-        </label>
-        <label>Country
-          <select id="countrySelect" disabled><option>Choose a service first</option></select>
-        </label>
-      </div>
+        <div class="step is-locked" id="stepCountry">
+          <h2 class="step-title"><span class="step-n">3</span>Country <span class="step-value" id="countryValue"></span></h2>
+          <div id="countryPicker"></div>
+        </div>
 
-      <div class="price-card" id="priceCard" hidden>
-        <div><span class="eyebrow">Your price</span><strong id="priceValue">₦0.00</strong><p class="muted small" id="priceMeta">Includes server routing. No charge until you confirm.</p></div>
-        <button class="btn btn-primary" id="buyBtn" disabled>Buy this number</button>
-      </div>
-      <p class="muted small" id="selectionHint" style="margin-top:16px;">Select a service and country to see the price before purchase.</p>
-    </section>
+        <div class="quote is-empty" id="quote" aria-live="polite">
+          <div>
+            <div class="quote-label">Your price</div>
+            <div class="quote-price" id="priceValue">—</div>
+            <div class="quote-note" id="priceMeta">Select a service and country to see it.</div>
+          </div>
+          <button class="btn btn-primary btn-lg" id="buyBtn" type="button" disabled>Buy number</button>
+        </div>
+      </section>
 
-    <section class="card" id="orderCard" hidden>
-      <div class="order-head"><div><span class="eyebrow">Active order</span><h2 id="orderService" style="margin-top:5px">—</h2></div><span class="badge" id="orderStatus">Pending</span></div>
-      <div class="number-box"><span id="orderNumber">—</span><button id="copyNumber">Copy</button></div>
-      <p class="muted">Waiting for SMS. Keep this page open; the OTP will appear automatically.</p>
-      <div class="otp-box" id="otpBox" hidden><span id="otpCode">—</span><button id="copyOtp">Copy OTP</button></div>
-      <button class="btn btn-danger" id="cancelBtn" style="margin-top:14px">Cancel order and refund</button>
-    </section>
+      <aside class="side" aria-label="Active order">
+        <div class="ticket" id="ticket" data-state="idle">
+          <div class="ticket-top">
+            <div class="ticket-meta"><span class="ticket-label">Your number</span><span class="badge neutral" id="orderStatus"><i class="dot"></i><span id="orderStatusText">No active order</span></span></div>
+            <div class="ticket-service" id="orderService">Nothing yet</div>
+            <div class="ticket-number"><span class="num" id="orderNumber">—</span><button class="chip-btn" id="copyNumber" type="button" disabled>Copy</button></div>
+          </div>
+          <div class="ticket-bottom">
+            <div class="ticket-label">Verification code</div>
+            <div class="otp" id="otpCode" aria-live="polite" aria-label="Verification code"></div>
+            <p class="ticket-note" id="ticketNote">Your number and code will appear here once you buy.</p>
+            <div class="ticket-actions">
+              <button class="chip-btn" id="copyOtp" type="button" hidden>Copy code</button>
+              <button class="chip-btn btn-ticket-danger" id="cancelBtn" type="button" hidden>Cancel and refund</button>
+            </div>
+          </div>
+        </div>
+        <p class="side-note">Keep this page open while you wait. The code appears automatically.</p>
+      </aside>
+    </div>
   </main>
   <script src="/assets/js/common.js"></script>
   <script src="/assets/js/dashboard.js"></script>

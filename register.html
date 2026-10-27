@@ -1,21 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SPLUG — Create account</title><link rel="stylesheet" href="/assets/css/style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Create account — SPLUG</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <meta name="theme-color" content="#0A7A47" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/css/style.css" />
 </head>
 <body data-mode="register">
   <header class="topbar"></header>
-  <main class="container"><section class="card auth-card">
-    <span class="eyebrow">Start private</span><h1>Create your SPLUG account</h1><p class="muted" style="margin-bottom:22px">Your dashboard will give you two routes: budget and priority.</p>
-    <form id="authForm">
-      <label>Username<input name="username" required minlength="3" placeholder="e.g. globalpay" /></label>
-      <label>Email<input name="email" type="email" required placeholder="you@example.com" /></label>
-      <label>Password <span class="small">(minimum 6 characters)</span><input name="password" type="password" required minlength="6" placeholder="Create a password" /></label>
-      <button class="btn btn-primary" type="submit">Create account</button>
-    </form>
-    <p class="muted" style="margin-top:20px;text-align:center">Already registered? <a href="/login.html">Sign in</a></p>
-  </section></main><footer class="site-footer">Already have an account? <a href="/login.html">Sign in</a>.</footer>
+  <main class="auth">
+    <section class="auth-form-side">
+      <div class="auth-card">
+        <h1>Create your account</h1>
+        <p class="lead">Free to join. You only pay when you buy a number.</p>
+        <div class="form-error" id="formError" role="alert" hidden><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg><span id="formErrorText"></span></div>
+        <form id="authForm" novalidate>
+          <div class="field"><label for="username">Username</label><input class="input" id="username" name="username" required minlength="3" autocomplete="username" autocapitalize="off" placeholder="e.g. globalpay" /></div>
+          <div class="field"><label for="email">Email</label><input class="input" id="email" name="email" type="email" required autocomplete="email" inputmode="email" placeholder="you@example.com" /></div>
+          <div class="field"><label for="password">Password</label>
+            <div class="input-wrap"><input class="input" id="password" name="password" type="password" required minlength="6" autocomplete="new-password" placeholder="At least 6 characters" /><button class="suffix" type="button" data-toggle="password" aria-label="Show password"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+          </div>
+          <button class="btn btn-primary btn-lg btn-block" type="submit">Create account</button>
+        </form>
+        <p class="auth-switch">Already registered? <a href="/login.html">Sign in</a></p>
+      </div>
+    </section>
+    <aside class="auth-aside" aria-hidden="true"><div class="auth-aside-inner">
+      <h2>Your number stays yours.</h2>
+      <p>Use a temporary number for sign-ups and verifications. See the naira price first, then receive the code here.</p>
+      <div class="ticket" data-state="received">
+        <div class="ticket-top">
+          <div class="ticket-meta"><span class="ticket-label">Your number</span><span class="badge received"><i class="dot"></i>Received</span></div>
+          <div class="ticket-service">Telegram</div>
+          <div class="ticket-number"><span class="num">+1 6•• ••• 305</span></div>
+        </div>
+        <div class="ticket-bottom">
+          <div class="ticket-label">Verification code</div>
+          <div class="otp"><span>3</span><span>7</span><span>0</span><span>5</span><span>6</span></div>
+        </div>
+      </div>
+    </div></aside>
+  </main>
   <script src="/assets/js/common.js"></script><script src="/assets/js/auth.js"></script>
 </body>
 </html>
