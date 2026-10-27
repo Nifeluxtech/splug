@@ -87,7 +87,7 @@ select:disabled { opacity: .5; cursor: not-allowed; }
 .dashboard-hero h1 { font-size: clamp(1.8rem, 5vw, 3rem); margin-top: 7px; }
 .dashboard-hero p { margin-top: 10px; }
 .server-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 6px; background: rgba(7,11,24,.7); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 20px; }
-.server-tab { display: flex; align-items: center; gap: 10px; text-align: left; padding: 14px; color: var(--muted); background: transparent; border: 0; border-radius: 12px; cursor: pointer; }
+.server-tab { appearance: none; -webkit-appearance: none; display: flex; align-items: center; gap: 10px; width: 100%; min-width: 0; text-align: left; padding: 14px; color: var(--muted); background: transparent; border: 0; border-radius: 12px; cursor: pointer; font: inherit; }
 .server-tab strong { display: block; color: inherit; font-size: .92rem; }
 .server-tab small { display: block; margin-top: 3px; font-size: .72rem; opacity: .78; }
 .server-tab.active { color: var(--text); background: linear-gradient(135deg, rgba(109,124,255,.24), rgba(161,91,255,.19)); box-shadow: inset 0 0 0 1px rgba(109,124,255,.25); }
