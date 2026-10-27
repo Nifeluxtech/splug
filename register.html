@@ -1,39 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SPLUG — Create account</title>
-  <link rel="stylesheet" href="/assets/css/style.css" />
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SPLUG — Create account</title><link rel="stylesheet" href="/assets/css/style.css" />
 </head>
 <body data-mode="register">
-  <header class="topbar">
-    <a class="brand" href="/index.html">⚡ S<span>PLUG</span></a>
-  </header>
-
-  <main class="container">
-    <section class="card" style="max-width:420px;margin:40px auto;">
-      <h2 style="margin-bottom:6px;">Create your account</h2>
-      <p class="muted" style="margin-bottom:20px;">Start receiving OTPs in minutes.</p>
-      <form id="authForm">
-        <label>Username
-          <input name="username" required minlength="3" placeholder="e.g. globalpay" />
-        </label>
-        <label>Email
-          <input name="email" type="email" required placeholder="you@example.com" />
-        </label>
-        <label>Password (min 6 characters)
-          <input name="password" type="password" required minlength="6" placeholder="••••••••" />
-        </label>
-        <button class="btn btn-primary" type="submit">Create account</button>
-      </form>
-      <p class="muted" style="margin-top:18px;text-align:center;">
-        Already registered? <a href="/login.html">Login</a>
-      </p>
-    </section>
-  </main>
-
-  <script src="/assets/js/common.js"></script>
-  <script src="/assets/js/auth.js"></script>
+  <header class="topbar"></header>
+  <main class="container"><section class="card auth-card">
+    <span class="eyebrow">Start private</span><h1>Create your SPLUG account</h1><p class="muted" style="margin-bottom:22px">Your dashboard will give you two routes: cheap 5sim and premium SMSPool.</p>
+    <form id="authForm">
+      <label>Username<input name="username" required minlength="3" placeholder="e.g. globalpay" /></label>
+      <label>Email<input name="email" type="email" required placeholder="you@example.com" /></label>
+      <label>Password <span class="small">(minimum 6 characters)</span><input name="password" type="password" required minlength="6" placeholder="Create a password" /></label>
+      <button class="btn btn-primary" type="submit">Create account</button>
+    </form>
+    <p class="muted" style="margin-top:20px;text-align:center">Already registered? <a href="/login.html">Sign in</a></p>
+  </section></main><footer class="site-footer">Already have an account? <a href="/login.html">Sign in</a>.</footer>
+  <script src="/assets/js/common.js"></script><script src="/assets/js/auth.js"></script>
 </body>
 </html>

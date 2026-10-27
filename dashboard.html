@@ -7,50 +7,56 @@
   <link rel="stylesheet" href="/assets/css/style.css" />
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="/index.html">⚡ S<span>PLUG</span></a>
-    <div class="balance-chip" id="balanceChip" hidden>₦0.00</div>
-  </header>
-
+  <header class="topbar"></header>
   <main class="container">
+    <section class="dashboard-hero">
+      <div>
+        <span class="eyebrow">Private verification, on demand</span>
+        <h1>Get a number.<br><span style="color:var(--cyan)">Keep your number private.</span></h1>
+        <p class="muted">Choose a server, select your service and country, then review the exact naira price before you pay.</p>
+      </div>
+    </section>
+
     <section class="card">
-      <h2 style="margin-bottom:16px;">Get a number</h2>
+      <div class="server-tabs" role="tablist" aria-label="Number server">
+        <button class="server-tab active" data-provider="cheap" role="tab">
+          <span class="server-icon">₿</span><span><strong>Cheap server</strong><small>5sim · cheapest operator</small></span>
+        </button>
+        <button class="server-tab" data-provider="premium" role="tab">
+          <span class="server-icon">✦</span><span><strong>Premium server</strong><small>SMSPool · wider availability</small></span>
+        </button>
+      </div>
+
+      <div class="selection-head">
+        <div><h2 id="providerTitle">5sim numbers</h2><p class="muted" id="providerDescription">Pick a service first, then choose a country. We use the lowest available 5sim operator.</p></div>
+        <span class="provider-pill" id="providerPill">CHEAP · 5SIM</span>
+      </div>
+
       <div class="grid-2">
         <label>Service
-          <input id="serviceFilter" placeholder="Search service… e.g. WhatsApp" />
-          <select id="serviceSelect" size="1"></select>
+          <input id="serviceFilter" placeholder="Search service… e.g. WhatsApp" autocomplete="off" />
+          <select id="serviceSelect"></select>
         </label>
         <label>Country
-          <select id="countrySelect"></select>
+          <select id="countrySelect" disabled><option>Choose a service first</option></select>
         </label>
       </div>
-      <button class="btn btn-primary" id="buyBtn" style="margin-top:8px;">Purchase number</button>
-      <p class="muted" style="margin-top:10px;">
-        Price is charged to your naira wallet. Cancel an unused number and get an instant refund.
-      </p>
+
+      <div class="price-card" id="priceCard" hidden>
+        <div><span class="eyebrow">Your price</span><strong id="priceValue">₦0.00</strong><p class="muted small" id="priceMeta">Includes server routing. No charge until you confirm.</p></div>
+        <button class="btn btn-primary" id="buyBtn" disabled>Buy this number</button>
+      </div>
+      <p class="muted small" id="selectionHint" style="margin-top:16px;">Select a service and country to see the price before purchase.</p>
     </section>
 
     <section class="card" id="orderCard" hidden>
-      <div class="order-head">
-        <h3 id="orderService">—</h3>
-        <span class="badge" id="orderStatus">Pending</span>
-      </div>
-      <div class="number-box">
-        <span id="orderNumber">—</span>
-        <button id="copyNumber">Copy</button>
-      </div>
-      <p class="muted">Waiting for SMS… keep this page open. The OTP appears automatically.</p>
-      <div class="otp-box" id="otpBox" hidden>
-        <span id="otpCode">—</span>
-        <button id="copyOtp">Copy OTP</button>
-      </div>
-      <button class="btn btn-danger" id="cancelBtn" style="margin-top:14px;">Cancel order (refund)</button>
-      <p class="muted" style="margin-top:12px;">
-        Full history lives on the <a href="/history.html">history page</a>.
-      </p>
+      <div class="order-head"><div><span class="eyebrow">Active order</span><h2 id="orderService" style="margin-top:5px">—</h2></div><span class="badge" id="orderStatus">Pending</span></div>
+      <div class="number-box"><span id="orderNumber">—</span><button id="copyNumber">Copy</button></div>
+      <p class="muted">Waiting for SMS. Keep this page open; the OTP will appear automatically.</p>
+      <div class="otp-box" id="otpBox" hidden><span id="otpCode">—</span><button id="copyOtp">Copy OTP</button></div>
+      <button class="btn btn-danger" id="cancelBtn" style="margin-top:14px">Cancel order and refund</button>
     </section>
   </main>
-
   <script src="/assets/js/common.js"></script>
   <script src="/assets/js/dashboard.js"></script>
 </body>
