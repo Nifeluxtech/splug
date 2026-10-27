@@ -1,6 +1,7 @@
 /* SPLUG — login & register pages */
 
 (function () {
+  mountHeader(document.body.dataset.mode === 'register' ? 'register' : 'login');
   // already logged in → straight to dashboard
   if (store.token) { window.location.replace('/dashboard.html'); return; }
 

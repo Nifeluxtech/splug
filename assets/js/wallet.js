@@ -2,6 +2,7 @@
 
 (async function () {
   if (!requireAuthPage()) return;
+  mountHeader('wallet');
   mountFooter('wallet');
 
   const $ = (id) => document.getElementById(id);

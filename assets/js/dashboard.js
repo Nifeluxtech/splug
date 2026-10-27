@@ -1,176 +1,121 @@
-/* SPLUG — dashboard: buy numbers, poll for OTP, cancel + refund (v2) */
-
+/* SPLUG — dashboard: cheap 5sim, premium SMSPool, price-first purchase */
 (async function () {
   if (!requireAuthPage()) return;
-  mountFooter('dashboard');
-  refreshBalanceChip();
+  mountHeader('dashboard'); mountFooter('dashboard'); refreshBalanceChip();
 
   const $ = (id) => document.getElementById(id);
-  let activeOrder = null;
-  let pollTimer = null;
+  const state = { provider: 'cheap', services: [], countries: [], quote: null, activeOrder: null, pollTimer: null };
 
-  /* ---------- catalogue (cached in sessionStorage) ---------- */
-  const pick = (item, keys) => {
-    for (const k of keys) if (item && item[k] != null && item[k] !== '') return item[k];
-    return null;
-  };
+  function providerApi() { return state.provider === 'cheap' ? 'fivesim' : 'smspool'; }
+  function renderOptions(select, rows, placeholder) {
+    select.innerHTML = `<option value="">${placeholder}</option>` + rows.map((row) => `<option value="${row.id}">${row.name}</option>`).join('');
+  }
+  function resetQuote(message = 'Select a service and country to see the price before purchase.') {
+    state.quote = null; $('priceCard').hidden = true; $('buyBtn').disabled = true; $('selectionHint').textContent = message;
+  }
 
-  async function loadCatalog() {
-    // try cache first
-    try {
-      const cached = JSON.parse(sessionStorage.getItem('splug_catalog') || 'null');
-      if (cached && cached.services.length && cached.countries.length) return cached;
-    } catch {}
-
-    try {
-      const data = await apiCall(API.numbers, { query: { action: 'services' } });
-      const cat = {
-        services: (data.services || [])
-          .map((s) => ({
-            id: pick(s, ['ID', 'id', 'service_id', 'serviceID']),
-            name: pick(s, ['Name', 'name', 'service_name']) || 'Unknown',
-          }))
-          .filter((s) => s.id)
-          .sort((a, b) => a.name.localeCompare(b.name)),
-        countries: (data.countries || [])
-          .map((c) => ({
-            id: pick(c, ['ID', 'id', 'country_id', 'countryID']),
-            name: pick(c, ['Name', 'name', 'country_name']) || 'Unknown',
-          }))
-          .filter((c) => c.id)
-          .sort((a, b) => a.name.localeCompare(b.name)),
-      };
-      if (!cat.services.length || !cat.countries.length) {
-        throw new Error('Catalogue came back empty — check your SMSPool key/balance');
-      }
-      try { sessionStorage.setItem('splug_catalog', JSON.stringify(cat)); } catch {}
-      return cat;
-    } catch (err) {
-      toast(`Couldn't load services: ${err.message}`, 'error');
-      addRetryButton();
-      throw err;
+  async function loadServices() {
+    state.services = []; state.countries = [];
+    $('serviceSelect').disabled = true; $('countrySelect').disabled = true;
+    $('countrySelect').innerHTML = '<option>Choose a service first</option>';
+    resetQuote('Loading services…');
+    const data = await apiCall(API.numbers, { query: { action: 'services', provider: providerApi() } });
+    state.services = data.services || [];
+    renderOptions($('serviceSelect'), state.services, 'Choose a service');
+    $('serviceSelect').disabled = false;
+    if (state.provider === 'premium') {
+      state.countries = data.countries || [];
     }
+    $('selectionHint').textContent = state.provider === 'cheap' ? 'Service first, then country. 5sim uses the cheapest available operator.' : 'Choose a service and country to see the SMSPool price.';
   }
 
-  function addRetryButton() {
-    if ($('retryBtn')) return;
-    const btn = document.createElement('button');
-    btn.id = 'retryBtn';
-    btn.className = 'btn btn-ghost';
-    btn.style.marginTop = '10px';
-    btn.textContent = '↻ Retry loading services';
-    btn.addEventListener('click', () => window.location.reload());
-    $('buyBtn').after(btn);
+  async function loadCountriesForService() {
+    const service = $('serviceSelect').value;
+    if (!service) { $('countrySelect').disabled = true; $('countrySelect').innerHTML = '<option>Choose a service first</option>'; resetQuote(); return; }
+    if (state.provider === 'cheap' && !state.countries.length) {
+      const data = await apiCall(API.numbers, { query: { action: 'countries', provider: 'fivesim' } });
+      state.countries = data.countries || [];
+    }
+    renderOptions($('countrySelect'), state.countries, 'Choose a country');
+    $('countrySelect').disabled = false;
+    resetQuote('Now choose a country to see the exact price.');
   }
 
-  const cat = await loadCatalog();
-
-  function renderServices() {
-    const q = ($('serviceFilter').value || '').toLowerCase();
-    const visible = cat.services.filter((s) => s.name.toLowerCase().includes(q)).slice(0, 100);
-    $('serviceSelect').innerHTML =
-      visible.map((s) => `<option value="${s.id}">${s.name}</option>`).join('') ||
-      '<option value="">No service found</option>';
+  async function showQuote() {
+    const service = $('serviceSelect').value;
+    const country = $('countrySelect').value;
+    if (!service || !country) return;
+    $('selectionHint').textContent = 'Checking the lowest available price…';
+    $('priceCard').hidden = true; $('buyBtn').disabled = true;
+    try {
+      state.quote = await apiCall(API.numbers, { query: { action: 'quote', provider: providerApi(), service, country } });
+      $('priceValue').textContent = naira(state.quote.price);
+      $('priceMeta').textContent = state.provider === 'cheap'
+        ? `5sim · ${state.quote.operator || 'cheapest operator'} · no charge until you confirm`
+        : 'SMSPool premium route · no charge until you confirm';
+      $('priceCard').hidden = false; $('buyBtn').disabled = false; $('selectionHint').textContent = 'Review the price above, then confirm to purchase.';
+    } catch (err) { resetQuote(err.message); toast(err.message, 'error'); }
   }
-  $('serviceFilter').addEventListener('input', renderServices);
-  renderServices();
-  $('countrySelect').innerHTML = cat.countries
-    .map((c) => `<option value="${c.id}">${c.name}</option>`).join('');
 
-  /* ---------- purchase ---------- */
+  async function switchProvider(provider) {
+    state.provider = provider;
+    document.querySelectorAll('.server-tab').forEach((button) => button.classList.toggle('active', button.dataset.provider === provider));
+    const cheap = provider === 'cheap';
+    $('providerTitle').textContent = cheap ? '5sim numbers' : 'SMSPool premium numbers';
+    $('providerDescription').textContent = cheap ? 'Pick a service first, then choose a country. We use the lowest available 5sim operator.' : 'Choose a service and country from SMSPool’s premium catalogue.';
+    $('providerPill').textContent = cheap ? 'CHEAP · 5SIM' : 'PREMIUM · SMSPOOL';
+    $('serviceFilter').value = '';
+    await loadServices();
+  }
+
+  document.querySelectorAll('.server-tab').forEach((button) => button.addEventListener('click', () => switchProvider(button.dataset.provider).catch((err) => toast(err.message, 'error'))));
+  $('serviceFilter').addEventListener('input', () => {
+    const query = $('serviceFilter').value.toLowerCase();
+    renderOptions($('serviceSelect'), state.services.filter((row) => row.name.toLowerCase().includes(query)), 'Choose a service');
+    $('countrySelect').disabled = true; $('countrySelect').innerHTML = '<option>Choose a service first</option>'; resetQuote();
+  });
+  $('serviceSelect').addEventListener('change', () => loadCountriesForService().catch((err) => toast(err.message, 'error')));
+  $('countrySelect').addEventListener('change', () => showQuote());
+
   $('buyBtn').addEventListener('click', async () => {
-    const serviceId = $('serviceSelect').value;
-    const countryId = $('countrySelect').value;
-    if (!serviceId || !countryId) { toast('Select a service and a country', 'error'); return; }
-
-    const btn = $('buyBtn');
-    btn.disabled = true;
-    btn.textContent = 'Purchasing…';
+    if (!state.quote) return;
+    const service = $('serviceSelect').value;
+    const country = $('countrySelect').value;
+    const serviceName = $('serviceSelect').selectedOptions[0]?.textContent || service;
+    const countryName = $('countrySelect').selectedOptions[0]?.textContent || country;
+    if (!window.confirm(`Buy ${serviceName} in ${countryName} for ${naira(state.quote.price)}?`)) return;
+    const button = $('buyBtn'); button.disabled = true; button.textContent = 'Purchasing…';
     try {
-      const data = await apiCall(API.numbers, {
-        method: 'POST',
-        query: { action: 'purchase' },
-        body: {
-          country: countryId,
-          service: serviceId,
-          countryName: $('countrySelect').selectedOptions[0].textContent,
-          serviceName: $('serviceSelect').selectedOptions[0].textContent,
-        },
-      });
-      activeOrder = data.order;
-      showOrder();
-      startPolling();
-      refreshBalanceChip();
-      toast(`Number purchased — ${naira(data.charged)} charged`);
-    } catch (err) {
-      toast(err.message, 'error');
-    }
-    btn.disabled = false;
-    btn.textContent = 'Purchase number';
+      const data = await apiCall(API.numbers, { method: 'POST', query: { action: 'purchase' }, body: { provider: providerApi(), service, country, serviceName, countryName, operator: state.quote.operator } });
+      state.activeOrder = data.order; showOrder(); startPolling(); refreshBalanceChip(); toast(`Number purchased for ${naira(data.charged)}`);
+    } catch (err) { toast(err.message, 'error'); }
+    button.disabled = false; button.textContent = 'Buy this number';
   });
 
-  /* ---------- active order UI ---------- */
   function showOrder() {
-    if (!activeOrder) return;
-    $('orderCard').hidden = false;
-    $('orderService').textContent = `${activeOrder.service} • ${activeOrder.country}`;
-    $('orderNumber').textContent = activeOrder.phone_number || '';
-    $('otpBox').hidden = true;
-    setBadge(activeOrder.status);
+    const order = state.activeOrder; if (!order) return;
+    $('orderCard').hidden = false; $('orderService').textContent = `${order.service} · ${order.country}`; $('orderNumber').textContent = order.phone_number || 'Waiting…'; $('otpBox').hidden = true; setBadge(order.status);
+    $('orderCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
-
-  function setBadge(status) {
-    const b = $('orderStatus');
-    b.textContent = status;
-    b.className = 'badge ' + status;
-  }
-
-  /* ---------- OTP polling (every 10s) ---------- */
+  function setBadge(status) { $('orderStatus').textContent = status; $('orderStatus').className = `badge ${status}`; }
+  function stopPolling() { if (state.pollTimer) clearInterval(state.pollTimer); state.pollTimer = null; }
   function startPolling() {
     stopPolling();
-    pollTimer = setInterval(async () => {
+    state.pollTimer = setInterval(async () => {
       try {
-        const data = await apiCall(API.numbers, {
-          query: { action: 'check', orderId: activeOrder.id },
-        });
-        activeOrder = data.order;
-        setBadge(activeOrder.status);
-        if (activeOrder.status === 'received') {
-          $('otpCode').textContent = activeOrder.otp;
-          $('otpBox').hidden = false;
-          $('otpBox').scrollIntoView({ behavior: 'smooth' });
-          stopPolling();
-          toast('OTP received! 🎉');
-        } else if (activeOrder.status !== 'pending') {
-          stopPolling();
-        }
+        const data = await apiCall(API.numbers, { query: { action: 'check', orderId: state.activeOrder.id } });
+        state.activeOrder = data.order; setBadge(state.activeOrder.status); $('orderNumber').textContent = state.activeOrder.phone_number || $('orderNumber').textContent;
+        if (state.activeOrder.status === 'received') { $('otpCode').textContent = state.activeOrder.otp || '—'; $('otpBox').hidden = false; stopPolling(); toast('OTP received'); }
+        else if (state.activeOrder.status !== 'pending') stopPolling();
       } catch {}
     }, 10000);
   }
-
-  function stopPolling() {
-    if (pollTimer) clearInterval(pollTimer);
-    pollTimer = null;
-  }
-
-  /* ---------- copy / cancel ---------- */
   $('copyNumber').addEventListener('click', () => copyText($('orderNumber').textContent, $('copyNumber')));
   $('copyOtp').addEventListener('click', () => copyText($('otpCode').textContent, $('copyOtp')));
-
   $('cancelBtn').addEventListener('click', async () => {
-    try {
-      const data = await apiCall(API.numbers, {
-        method: 'POST',
-        query: { action: 'cancel', orderId: activeOrder.id },
-      });
-      stopPolling();
-      activeOrder.status = 'cancelled';
-      setBadge('cancelled');
-      $('otpBox').hidden = true;
-      refreshBalanceChip();
-      toast(`Cancelled — ${naira(data.refunded)} refunded`);
-    } catch (err) {
-      toast(err.message, 'error');
-    }
+    if (!state.activeOrder) return;
+    try { const data = await apiCall(API.numbers, { method: 'POST', query: { action: 'cancel', orderId: state.activeOrder.id } }); stopPolling(); state.activeOrder.status = 'cancelled'; setBadge('cancelled'); $('otpBox').hidden = true; refreshBalanceChip(); toast(`Cancelled — ${naira(data.refunded)} refunded`); } catch (err) { toast(err.message, 'error'); }
   });
+
+  try { await switchProvider('cheap'); } catch (err) { toast(err.message, 'error'); }
 })();

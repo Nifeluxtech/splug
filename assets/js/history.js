@@ -2,6 +2,7 @@
 
 (async function () {
   if (!requireAuthPage()) return;
+  mountHeader('history');
   mountFooter('history');
   refreshBalanceChip();
 
