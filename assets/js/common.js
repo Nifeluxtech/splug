@@ -10,9 +10,11 @@ const API = {
 const store = {
   get token() { return localStorage.getItem('splug_token'); },
   set token(v) { v ? localStorage.setItem('splug_token', v) : localStorage.removeItem('splug_token'); },
+  get refreshToken() { return localStorage.getItem('splug_refresh_token'); },
+  set refreshToken(v) { v ? localStorage.setItem('splug_refresh_token', v) : localStorage.removeItem('splug_refresh_token'); },
 };
 
-async function apiCall(url, { method = 'GET', body, query = {} } = {}) {
+async function apiCall(url, { method = 'GET', body, query = {}, retry = true } = {}) {
   const qs = new URLSearchParams(query).toString();
   const res = await fetch(`${url}${qs ? '?' + qs : ''}`, {
     method,
@@ -24,8 +26,22 @@ async function apiCall(url, { method = 'GET', body, query = {} } = {}) {
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok || json.success === false) {
-    if (res.status === 401) {
+    const authFailure = res.status === 401 || /invalid jwt|token is expired|session expired|not authenticated/i.test(json.message || '');
+    if (authFailure && retry && url !== API.auth && store.refreshToken) {
+      try {
+        const refreshed = await apiCall(API.auth, {
+          method: 'POST',
+          body: { action: 'refresh', refresh_token: store.refreshToken },
+          retry: false,
+        });
+        store.token = refreshed.access_token;
+        if (refreshed.refresh_token) store.refreshToken = refreshed.refresh_token;
+        return apiCall(url, { method, body, query, retry: false });
+      } catch {}
+    }
+    if (authFailure) {
       store.token = null;
+      store.refreshToken = null;
       window.location.replace('/login.html');
     }
     throw new Error(json.message || 'Request failed');
@@ -45,6 +61,7 @@ function requireAuthPage() {
 async function logout() {
   try { await apiCall(API.auth, { method: 'POST', body: { action: 'logout' } }); } catch {}
   store.token = null;
+  store.refreshToken = null;
   window.location.href = '/login.html';
 }
 
