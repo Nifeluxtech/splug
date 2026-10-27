@@ -1,4 +1,4 @@
-/* SPLUG — dashboard: cheap 5sim, premium SMSPool, price-first purchase */
+/* SPLUG — dashboard: budget and priority routes, price-first purchase */
 (async function () {
   if (!requireAuthPage()) return;
   mountHeader('dashboard'); mountFooter('dashboard'); refreshBalanceChip();
@@ -26,7 +26,7 @@
     if (state.provider === 'premium') {
       state.countries = data.countries || [];
     }
-    $('selectionHint').textContent = state.provider === 'cheap' ? 'Service first, then country. 5sim uses the cheapest available operator.' : 'Choose a service and country to see the SMSPool price.';
+    $('selectionHint').textContent = state.provider === 'cheap' ? 'Service first, then country. We’ll use the lowest available price.' : 'Choose a service and country to see the priority-route price.';
   }
 
   async function loadCountriesForService() {
@@ -51,8 +51,8 @@
       state.quote = await apiCall(API.numbers, { query: { action: 'quote', provider: providerApi(), service, country } });
       $('priceValue').textContent = naira(state.quote.price);
       $('priceMeta').textContent = state.provider === 'cheap'
-        ? `5sim · ${state.quote.operator || 'cheapest operator'} · no charge until you confirm`
-        : 'SMSPool premium route · no charge until you confirm';
+        ? 'Budget route · no charge until you confirm'
+        : 'Priority route · no charge until you confirm';
       $('priceCard').hidden = false; $('buyBtn').disabled = false; $('selectionHint').textContent = 'Review the price above, then confirm to purchase.';
     } catch (err) { resetQuote(err.message); toast(err.message, 'error'); }
   }
@@ -61,9 +61,9 @@
     state.provider = provider;
     document.querySelectorAll('.server-tab').forEach((button) => button.classList.toggle('active', button.dataset.provider === provider));
     const cheap = provider === 'cheap';
-    $('providerTitle').textContent = cheap ? '5sim numbers' : 'SMSPool premium numbers';
-    $('providerDescription').textContent = cheap ? 'Pick a service first, then choose a country. We use the lowest available 5sim operator.' : 'Choose a service and country from SMSPool’s premium catalogue.';
-    $('providerPill').textContent = cheap ? 'CHEAP · 5SIM' : 'PREMIUM · SMSPOOL';
+    $('providerTitle').textContent = cheap ? 'Budget numbers' : 'Priority numbers';
+    $('providerDescription').textContent = cheap ? 'Pick a service first, then choose a country. We’ll use the lowest available price.' : 'Choose a service and country from the priority catalogue.';
+    $('providerPill').textContent = cheap ? 'BUDGET ROUTE' : 'PRIORITY ROUTE';
     $('serviceFilter').value = '';
     await loadServices();
   }
