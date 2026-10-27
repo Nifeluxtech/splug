@@ -34,6 +34,20 @@ module.exports = handler(async (req, res) => {
     return ok({ access_token: session.access_token, refresh_token: session.refresh_token });
   }
 
+  // refresh → rotate an expired access token without forcing a login
+  if (action === 'refresh') {
+    const refreshToken = req.body?.refresh_token;
+    if (!refreshToken) {
+      const e = new Error('Session expired — login again'); e.status = 401; throw e;
+    }
+    try {
+      const session = await supabase.refresh(refreshToken);
+      return ok({ access_token: session.access_token, refresh_token: session.refresh_token });
+    } catch {
+      const e = new Error('Session expired — login again'); e.status = 401; throw e;
+    }
+  }
+
   // me → current session
   if (action === 'me') {
     const token = (req.headers['authorization'] || '').replace('Bearer ', '');
