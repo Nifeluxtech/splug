@@ -1,13 +1,39 @@
 /* SPLUG — wallet: balance, deposit (Afrstar), withdraw (Afrstar bank payout) */
 (async function () {
+  const $ = (id) => document.getElementById(id);
+
+  /* ---------- tabs + amount shortcuts (plain DOM, wired first) ---------- */
+  function showPane(which) {
+    const dep = which === 'deposit';
+    $('tabDeposit').setAttribute('aria-selected', String(dep));
+    $('tabWithdraw').setAttribute('aria-selected', String(!dep));
+    $('paneDeposit').hidden = !dep; $('paneWithdraw').hidden = dep;
+  }
+  function syncChips() {
+    document.querySelectorAll('.chip[data-amt]').forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.amt === String($('depositAmount').value))));
+  }
+  $('tabDeposit').addEventListener('click', () => showPane('deposit'));
+  $('tabWithdraw').addEventListener('click', () => showPane('withdraw'));
+  document.querySelectorAll('.chip[data-amt]').forEach((chip) => chip.addEventListener('click', () => {
+    $('depositAmount').value = chip.dataset.amt; syncChips(); $('depositAmount').focus();
+  }));
+  $('depositAmount').addEventListener('input', syncChips);
+
+  if (typeof requireAuthPage !== 'function') { console.error('common.js is out of date — copy the full project.'); return; }
   if (!requireAuthPage()) return;
   mountHeader('wallet'); mountTabbar('wallet');
 
-  const $ = (id) => document.getElementById(id);
-
   async function loadBalance() {
-    const value = await refreshBalanceChip();
-    if (value != null) $('balanceAmount').textContent = naira(value);
+    try {
+      const data = await apiCall(API.wallet, { query: { action: 'balance' } });
+      balance.value = Number(data.balance || 0);
+      $('balanceAmount').textContent = naira(balance.value);
+      $('balanceNote').textContent = 'Withdrawals are held until they are confirmed.';
+      refreshBalanceChip();
+    } catch (err) {
+      $('balanceAmount').textContent = '—';
+      $('balanceNote').textContent = `Couldn't load your balance: ${err.message}`;
+    }
   }
 
   async function loadTxns() {
@@ -21,25 +47,6 @@
       $('txnList').innerHTML = emptyState({ icon: 'alert', title: 'Could not load transactions', text: err.message });
     }
   }
-
-  /* ---------- tabs ---------- */
-  function showPane(which) {
-    const dep = which === 'deposit';
-    $('tabDeposit').setAttribute('aria-selected', String(dep));
-    $('tabWithdraw').setAttribute('aria-selected', String(!dep));
-    $('paneDeposit').hidden = !dep; $('paneWithdraw').hidden = dep;
-  }
-  $('tabDeposit').addEventListener('click', () => showPane('deposit'));
-  $('tabWithdraw').addEventListener('click', () => showPane('withdraw'));
-
-  /* ---------- deposit ---------- */
-  document.querySelectorAll('.chip[data-amt]').forEach((chip) => chip.addEventListener('click', () => {
-    $('depositAmount').value = chip.dataset.amt; syncChips(); $('depositAmount').focus();
-  }));
-  function syncChips() {
-    document.querySelectorAll('.chip[data-amt]').forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.amt === String($('depositAmount').value))));
-  }
-  $('depositAmount').addEventListener('input', syncChips);
 
   $('depositForm').addEventListener('submit', async (e) => {
     e.preventDefault();

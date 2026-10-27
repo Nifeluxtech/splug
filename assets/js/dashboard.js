@@ -5,6 +5,9 @@
 
   const $ = (id) => document.getElementById(id);
   const state = { provider: 'cheap', countries: [], quote: null, order: null, pollTimer: null, loadId: 0 };
+  const normalize = (list) => (list || [])
+    .map((r) => ({ id: String(r.id ?? r.ID ?? r.short_name ?? ''), name: String(r.name ?? r.short_name ?? '').trim() }))
+    .filter((r) => r.id && r.name);
   const providerApi = () => (state.provider === 'cheap' ? 'fivesim' : 'smspool');
   const routeName = () => (state.provider === 'cheap' ? 'Budget' : 'Priority');
 
@@ -35,9 +38,9 @@
     try {
       const data = await apiCall(API.numbers, { query: { action: 'services', provider: providerApi() } });
       if (myLoad !== state.loadId) return; // route changed while loading
-      servicePicker.setItems(data.services || []);
+      servicePicker.setItems(normalize(data.services));
       // priority route ships its country list with the services; budget route loads it on demand
-      state.countries = state.provider === 'premium' ? (data.countries || []) : [];
+      state.countries = state.provider === 'premium' ? normalize(data.countries) : [];
     } catch (err) {
       if (myLoad !== state.loadId) return;
       servicePicker.lock('Could not load services. Try switching routes or refresh.');
@@ -53,7 +56,7 @@
         countryPicker.lock('Loading countries…');
         const data = await apiCall(API.numbers, { query: { action: 'countries', provider: 'fivesim' } });
         if (myLoad !== state.loadId) return;
-        state.countries = data.countries || [];
+        state.countries = normalize(data.countries);
       }
       countryPicker.setItems(state.countries); markSteps();
     } catch (err) { countryPicker.lock('Could not load countries.'); toast(err.message, 'error'); }
