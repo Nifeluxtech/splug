@@ -2,12 +2,13 @@
 // GET  /api/wallet?action=balance                  → balance
 // POST /api/wallet?action=deposit                  → create Afrstar deposit order (min ₦1,000)
 // POST /api/wallet?action=withdraw                 → create Afrstar bank payout (min ₦1,000)
-// GET  /api/wallet?action=status&reference=...    → query gateway status
+// GET  /api/wallet?action=banks                    → Nigerian payout bank list
 
 const supabase = require('../lib/supabase');
 const afrstar = require('../lib/afrstar');
 const { requireUser } = require('../lib/auth');
 const { handler, ok } = require('../lib/respond');
+const { BANKS, bankByCode } = require('../lib/banks');
 
 const MIN_DEPOSIT = 1000;   // ₦
 const MIN_WITHDRAWAL = 1000; // ₦
@@ -25,47 +26,55 @@ module.exports = handler(async (req, res) => {
     });
   }
 
-  // ---- deposit (Afrstar) ----
+  // ---- bank list for payouts ----
+  if (action === 'banks') {
+    return ok({ banks: BANKS });
+  }
+
+  // ---- deposit (Afrstar hosted checkout) ----
   if (action === 'deposit') {
     const amount = parseFloat(req.body?.amount);
     if (!amount || amount < MIN_DEPOSIT) {
       const e = new Error(`Minimum deposit is ₦${MIN_DEPOSIT.toLocaleString()}`); e.status = 400; throw e;
     }
     const reference = `DEP-${user.id.slice(0, 8)}-${Date.now()}`;
+    const site = (process.env.SITE_URL || `https://${req.headers.host}`).replace(/\/$/, '');
+    const profile = await supabase.selectOne('profiles', { select: '*' }, token).catch(() => null);
+    const name = profile?.username || user.user_metadata?.username || (user.email || 'SPLUG user').split('@')[0];
 
     const gateway = await afrstar.createDeposit({
       reference,
       amount,
-      redirectUrl: `${process.env.SITE_URL || ''}/wallet.html?deposit=done`,
+      name,
+      email: user.email || '',
+      phone: process.env.AFRSTAR_DEFAULT_PHONE || '08000000000',
+      redirectUrl: `${site}/wallet.html?deposit=done`,
     });
 
-    // record as pending; the webhook at /api/gateway finalizes it
+    // record as pending; the callback at /api/gateway credits the wallet once Afrstar confirms payment
     await supabase.insert('transactions', {
       user_id: user.id,
       type: 'deposit',
-      amount,
+      amount: Number(amount.toFixed(2)),
       status: 'pending',
       reference,
       description: 'Wallet deposit via Afrstar',
     });
 
-    return ok({
-      reference,
-      paymentUrl: [gateway, gateway?.data, gateway?.result].map((g) => g && (g.payment_url || g.paymentUrl || g.checkout_url || g.pay_url || g.link || g.url)).find(Boolean) || null,
-      gateway,
-    });
+    return ok({ reference, paymentUrl: gateway.pay_url || null });
   }
 
-  // ---- withdraw to bank (Afrstar) ----
+  // ---- withdraw to bank (Afrstar payout) ----
   if (action === 'withdraw') {
     const { amount, bankCode, accountNumber, accountName } = req.body || {};
     const amt = parseFloat(amount);
     if (!amt || amt < MIN_WITHDRAWAL) {
       const e = new Error(`Minimum withdrawal is ₦${MIN_WITHDRAWAL.toLocaleString()}`); e.status = 400; throw e;
     }
-    if (!bankCode || !accountNumber || !accountName) {
-      const e = new Error('Bank code, account number and account name are required'); e.status = 400; throw e;
-    }
+    const bank = bankByCode(bankCode);
+    if (!bank) { const e = new Error('Choose a bank from the list'); e.status = 400; throw e; }
+    if (!/^\d{10}$/.test(String(accountNumber || ''))) { const e = new Error('Account number must be 10 digits'); e.status = 400; throw e; }
+    if (!String(accountName || '').trim()) { const e = new Error('Enter the account name'); e.status = 400; throw e; }
 
     const reference = `WDL-${user.id.slice(0, 8)}-${Date.now()}`;
 
@@ -75,31 +84,23 @@ module.exports = handler(async (req, res) => {
       p_amount: amt,
       p_type: 'withdrawal',
       p_reference: reference,
-      p_description: 'Withdrawal to bank account',
+      p_description: `Withdrawal to ${bank.name} ${String(accountNumber).slice(-4).padStart(10, '•')}`,
       p_pending: true,
     });
 
     try {
       const gateway = await afrstar.createWithdrawal({
-        reference, amount: amt, bankCode, accountNumber, accountName,
+        reference, amount: amt, bankCode: bank.code, accountNumber: String(accountNumber), accountName: String(accountName).trim(),
       });
-      return ok({ reference, status: gateway.status || 'processing', gateway });
+      return ok({ reference, status: gateway.status || 'processing' });
     } catch (err) {
-      // payout failed instantly → give the money back
+      // payout rejected instantly → give the money back
       await supabase.rpc('credit_wallet', {
         p_user: user.id, p_amount: amt, p_type: 'refund',
         p_reference: reference, p_description: 'Withdrawal failed — funds returned',
       });
       throw err;
     }
-  }
-
-  // ---- gateway status check ----
-  if (action === 'status') {
-    const { reference } = req.query;
-    if (!reference) { const e = new Error('reference is required'); e.status = 400; throw e; }
-    const result = await afrstar.checkStatus(reference);
-    return ok(result);
   }
 
   const e = new Error('Unknown action'); e.status = 400; throw e;
