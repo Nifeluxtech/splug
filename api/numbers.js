@@ -48,12 +48,20 @@ function providerOrder(raw) {
 function fivesimOrderResponse(order, fallback) {
   const sms = Array.isArray(order?.sms) ? order.sms[order.sms.length - 1] : order?.sms;
   const status = String(order?.status || '').toLowerCase();
+  const otp = sms?.code || sms?.text?.match(/\d{4,8}/)?.[0] || null;
+  // 5sim's "RECEIVED" status means the PHONE NUMBER was issued, not that an SMS arrived.
+  // Only treat the order as received once an actual code is present.
+  let normalized = 'pending';
+  if (otp) normalized = 'received';
+  else if (['timeout', 'expired'].includes(status)) normalized = 'expired';
+  else if (['canceled', 'cancelled', 'banned'].includes(status)) normalized = 'cancelled';
+  else if (status === 'finished') normalized = 'expired';
   return {
     id: fallback.id,
     smspool_order_id: `5sim:${order?.id || fallback.id}`,
     phone_number: order?.phone || order?.phone_number || fallback.phone_number,
-    status: sms || status === 'received' ? 'received' : ['expired', 'cancelled', 'finished'].includes(status) ? status : 'pending',
-    otp: sms?.code || sms?.text?.match(/\d{4,8}/)?.[0] || null,
+    status: normalized,
+    otp,
     full_sms: sms?.text || null,
   };
 }
@@ -124,8 +132,12 @@ module.exports = handler(async (req, res) => {
       status: 'pending',
       price: quote.price,
     });
+    let saved = Array.isArray(row) ? row[0] : row;
+    if (!saved) {
+      saved = await supabase.selectOne('orders', { user_id: `eq.${user.id}`, order: 'created_at.desc', limit: '1', select: '*' }, token);
+    }
     return ok({
-      order: Array.isArray(row) ? row[0] : row,
+      order: saved,
       charged: quote.price,
       provider,
       operator: quote.operator || operator || 'any',
@@ -141,7 +153,9 @@ module.exports = handler(async (req, res) => {
     }
     const selected = providerOrder(order.smspool_order_id);
     if (action === 'check') {
-      if (order.status !== 'pending') return ok({ order });
+      // Older rows may be marked 'received' with no code (5sim status bug) — keep polling those.
+      const stuck = order.status === 'received' && !order.otp;
+      if (order.status !== 'pending' && !stuck) return ok({ order });
       if (selected.provider === 'fivesim') {
         const remote = await fivesim.check(selected.id);
         const normalized = fivesimOrderResponse(remote, order);
