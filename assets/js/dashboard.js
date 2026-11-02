@@ -119,7 +119,8 @@
     const btn = $('buyBtn'); setLoading(btn, true, 'Buying…');
     try {
       const data = await apiCall(API.numbers, { method: 'POST', query: { action: 'purchase' }, body: { provider: providerApi(), service, country, serviceName, countryName, operator: state.quote.operator } });
-      state.order = data.order; renderTicket(); startPolling(); refreshBalanceChip();
+      state.order = data.order || null; refreshBalanceChip();
+      if (state.order) { renderTicket(); startPolling(); } else { await resumePending(); }
       toast(`Number bought for ${naira(data.charged)}`);
       if (window.matchMedia('(max-width: 960px)').matches) $('ticket').scrollIntoView({ behavior: 'smooth', block: 'center' });
     } catch (err) { toast(err.message, 'error'); }
@@ -134,7 +135,8 @@
   }
   function renderTicket() {
     const o = state.order;
-    const status = o ? (o.status || 'pending') : 'idle';
+    let status = o ? (o.status || 'pending') : 'idle';
+    if (status === 'received' && !o.otp) status = 'pending'; // never claim a code we don't have
     const t = $('ticket'); t.dataset.state = status;
     document.querySelector('.side').classList.toggle('has-order', status !== 'idle');
     $('orderStatus').className = `badge ${status === 'idle' ? 'neutral' : status}`;
@@ -165,7 +167,8 @@
         const prev = state.order.status;
         state.order = { ...state.order, ...data.order };
         renderTicket();
-        if (state.order.status !== 'pending') {
+        const waiting = state.order.status === 'pending' || (state.order.status === 'received' && !state.order.otp);
+        if (!waiting) {
           stopPolling();
           if (state.order.status === 'received' && prev !== 'received') toast('Code received');
           if (state.order.status === 'expired') refreshBalanceChip();
@@ -193,7 +196,7 @@
   async function resumePending() {
     try {
       const data = await apiCall(API.history, { query: { action: 'orders' } });
-      const recent = (data.orders || []).find((o) => o.status === 'pending' && Date.now() - new Date(o.created_at).getTime() < 30 * 60 * 1000);
+      const recent = (data.orders || []).find((o) => (o.status === 'pending' || (o.status === 'received' && !o.otp)) && Date.now() - new Date(o.created_at).getTime() < 30 * 60 * 1000);
       if (recent) { state.order = recent; renderTicket(); startPolling(); }
     } catch {}
   }
