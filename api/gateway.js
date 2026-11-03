@@ -5,6 +5,7 @@
 
 const supabase = require('../lib/supabase');
 const afrstar = require('../lib/afrstar');
+const { checkoutTotal } = require('../lib/fees');
 
 const text = (res, code, body) => { res.statusCode = code; res.setHeader('Content-Type', 'text/plain'); res.end(body); };
 
@@ -25,15 +26,16 @@ module.exports = async (req, res) => {
     const status = Number(ev.status);
     if (txn.type !== 'deposit') return text(res, 400, 'unsupported transaction type');
 
-    // signature (deposit signs with the ORIGINAL order amount we stored)
-    if (!afrstar.verifyCollectionCallback(ev, txn.amount)) return text(res, 401, 'invalid signature');
+    // signature uses the ORIGINAL checkout amount (wallet credit + service fee for DPF- deposits)
+    const charged = checkoutTotal(txn);
+    if (!afrstar.verifyCollectionCallback(ev, charged)) return text(res, 401, 'invalid signature');
 
     // idempotent: already settled → just acknowledge
     if (txn.status !== 'pending') return text(res, 200, 'success');
 
     if (status === 1) {
       const paid = Number(ev.amount_paid ?? ev.amount);
-      if (!(paid >= Number(txn.amount))) return text(res, 200, 'success'); // underpaid: do not credit automatically
+      if (!(paid >= charged)) return text(res, 200, 'success'); // underpaid: do not credit automatically
       await supabase.rpc('finalize_txn', { p_txn: txn.id, p_success: true });
     }
     return text(res, 200, 'success');

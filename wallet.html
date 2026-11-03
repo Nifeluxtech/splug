@@ -64,13 +64,15 @@
 
         <section class="card" aria-label="Fund wallet">
           <div class="card-head"><h2>Fund wallet</h2><span class="badge success">Secure checkout</span></div>
+          <div class="notice" role="note"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg><span><strong>OPay and PalmPay are currently unavailable</strong> for deposits. Please pay with any other bank.</span></div>
           <form id="depositForm" novalidate>
             <div class="field">
               <label for="depositAmount">Amount</label>
-              <div class="input-money"><input class="input" id="depositAmount" type="number" inputmode="numeric" min="1000" step="50" required placeholder="2,000" /></div>
-              <p class="hint">Minimum ₦1,000.</p>
+              <div class="input-money"><input class="input" id="depositAmount" type="number" inputmode="numeric" min="500" step="50" required placeholder="2,000" /></div>
+              <p class="hint" id="feeHint">Minimum ₦500. A 3% service fee is added at checkout.</p>
             </div>
             <div class="chips" role="group" aria-label="Quick amounts">
+              <button type="button" class="chip" data-amt="500">₦500</button>
               <button type="button" class="chip" data-amt="1000">₦1,000</button>
               <button type="button" class="chip" data-amt="2000">₦2,000</button>
               <button type="button" class="chip" data-amt="5000">₦5,000</button>
