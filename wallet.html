@@ -3,82 +3,109 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Wallet — SPLUG</title>
+  <title>Wallet — SPLUG by Nifelux</title>
+  <meta name="description" content="Fund your SPLUG naira wallet." />
+  <link rel="canonical" href="https://splug-theta.vercel.app/wallet.html" />
+  <meta property="og:site_name" content="SPLUG by Nifelux" />
+  <meta property="og:title" content="Wallet — SPLUG by Nifelux" />
+  <meta property="og:description" content="Fund your SPLUG naira wallet." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#060912" />
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
-  <meta name="theme-color" content="#0A7A47" />
   <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=5" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=6" />
+  <meta name="robots" content="noindex" />
 </head>
-<body>
-  <header class="topbar"></header>
-  <main class="container">
+<body class="app">
+  <a class="skip" href="#main">Skip to content</a>
+  <aside class="sidebar" id="sidebar" aria-label="App navigation">
+    <a class="brand" href="/dashboard.html" aria-label="SPLUG by Nifelux — home"><svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="8" fill="#22c55e"/><path d="M10 6v5M18 6v5M8 11h12v3a6 6 0 0 1-12 0v-3zM14 20v3" stroke="#03130a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><span class="brand-text">SPLUG<small>by <b>Nifelux</b></small></span></a>
+    <nav class="side-nav" aria-label="Primary">
+      <div class="side-label">Menu</div>
+      <a href="/dashboard.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg><span>Buy number</span></a><a href="/wallet.html" aria-current="page"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7H5a2 2 0 0 1 0-4h13v4z"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><path d="M16 14h.01"/></svg><span>Wallet</span></a><a href="/history.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>History</span></a>
+      <div class="side-label">Help</div>
+      <a href="/contact.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="m5.6 5.6 3.9 3.9M14.5 14.5l3.9 3.9M18.4 5.6l-3.9 3.9M9.5 14.5l-3.9 3.9"/></svg><span>Support</span></a>
+      <a href="/faq.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 2.2-2.4 3.7M12 17v.01"/></svg><span>FAQ</span></a>
+    </nav>
+    <div class="side-foot">
+      <div class="side-promo"><strong>Wallet balance</strong><span class="mono" data-balance>₦—</span><a class="btn btn-primary btn-sm btn-block" href="/wallet.html"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Fund wallet</a></div>
+      <button class="btn btn-quiet btn-block" type="button" data-logout style="justify-content:flex-start"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg> Sign out</button>
+      <div class="side-by">A product of <a href="https://www.nifelux.com" target="_blank" rel="noopener">Nifelux Technologies</a></div>
+    </div>
+  </aside>
+  <div class="side-backdrop" aria-hidden="true"></div>
+  <header class="app-topbar">
+    <button class="icon-btn menu-toggle" id="navOpen" type="button" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <a class="brand" href="/dashboard.html" aria-label="SPLUG by Nifelux — home"><svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="8" fill="#22c55e"/><path d="M10 6v5M18 6v5M8 11h12v3a6 6 0 0 1-12 0v-3zM14 20v3" stroke="#03130a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><span class="brand-text">SPLUG<small>by <b>Nifelux</b></small></span></a>
+    <h1>Wallet</h1>
+    <div class="header-actions">
+      <a class="balance-chip" id="balanceChip" href="/wallet.html" aria-label="Wallet balance — fund wallet"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7H5a2 2 0 0 1 0-4h13v4z"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><path d="M16 14h.01"/></svg><span data-balance>₦—</span><span class="plus" aria-hidden="true">+</span></a>
+      <span class="user-chip" id="userChip" hidden aria-hidden="true"></span>
+      <button class="icon-btn" type="button" data-logout aria-label="Sign out" title="Sign out"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></button>
+    </div>
+  </header>
+  <main class="app-main" id="main">
     <div class="page-head">
-      <h1>Wallet</h1>
-      <p>Fund your balance before you buy. Every purchase shows its exact price first.</p>
+      <div><h1>Wallet</h1><p>Fund your naira balance, then spend it on numbers. Every purchase shows its exact price first.</p></div>
     </div>
 
     <div class="wallet-grid">
       <div>
         <section class="balance-card" aria-label="Balance">
           <span class="ticket-label">Available balance</span>
-          <div class="balance-amount" id="balanceAmount">₦0.00</div>
-          <p id="balanceNote">Withdrawals are held until they are confirmed.</p>
+          <div class="balance-amount" id="balanceAmount">₦—</div>
+          <p id="balanceNote">Loading your balance…</p>
+          <span class="pill"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> For purchases on SPLUG only · not withdrawable</span>
         </section>
 
-        <section class="card" aria-label="Move money">
-          <div class="segmented" role="tablist" aria-label="Wallet action">
-            <button type="button" role="tab" id="tabDeposit" aria-selected="true" aria-controls="paneDeposit">Add funds</button>
-            <button type="button" role="tab" id="tabWithdraw" aria-selected="false" aria-controls="paneWithdraw">Withdraw</button>
-          </div>
-
-          <div class="pane" id="paneDeposit" role="tabpanel" aria-labelledby="tabDeposit">
-            <form id="depositForm" novalidate>
-              <div class="field">
-                <label for="depositAmount">Amount</label>
-                <div class="input-money"><input class="input" id="depositAmount" type="number" inputmode="numeric" min="1000" step="50" required placeholder="2,000" /></div>
-                <p class="hint">Minimum ₦1,000.</p>
-              </div>
-              <div class="chips" role="group" aria-label="Quick amounts">
-                <button type="button" class="chip" data-amt="1000">₦1,000</button>
-                <button type="button" class="chip" data-amt="2000">₦2,000</button>
-                <button type="button" class="chip" data-amt="5000">₦5,000</button>
-                <button type="button" class="chip" data-amt="10000">₦10,000</button>
-              </div>
-              <button class="btn btn-primary btn-lg btn-block" type="submit">Continue to payment</button>
-              <p class="hint">You'll finish paying on Afrstar's secure page, then come back here.</p>
-            </form>
-          </div>
-
-          <div class="pane" id="paneWithdraw" role="tabpanel" aria-labelledby="tabWithdraw" hidden>
-            <form id="withdrawForm" novalidate>
-              <div class="field">
-                <label for="withdrawAmount">Amount</label>
-                <div class="input-money"><input class="input" id="withdrawAmount" type="number" inputmode="numeric" min="1000" step="100" required placeholder="5,000" /></div>
-                <p class="hint">Minimum ₦1,000.</p>
-              </div>
-              <div class="field">
-                <span class="label" id="bankLabel">Bank <span class="opt" id="bankChosen"></span></span>
-                <div id="bankPicker" aria-labelledby="bankLabel"></div>
-              </div>
-              <div class="field"><label for="accountNumber">Account number</label><input class="input" id="accountNumber" required inputmode="numeric" maxlength="10" pattern="[0-9]*" placeholder="10 digits" autocomplete="off" /></div>
-              <div class="field"><label for="accountName">Account name</label><input class="input" id="accountName" required autocomplete="off" placeholder="Name on the account" /></div>
-              <button class="btn btn-primary btn-lg btn-block" type="submit">Withdraw to bank</button>
-            </form>
-          </div>
+        <section class="card" aria-label="Fund wallet">
+          <div class="card-head"><h2>Fund wallet</h2><span class="badge success">Secure checkout</span></div>
+          <form id="depositForm" novalidate>
+            <div class="field">
+              <label for="depositAmount">Amount</label>
+              <div class="input-money"><input class="input" id="depositAmount" type="number" inputmode="numeric" min="1000" step="50" required placeholder="2,000" /></div>
+              <p class="hint">Minimum ₦1,000.</p>
+            </div>
+            <div class="chips" role="group" aria-label="Quick amounts">
+              <button type="button" class="chip" data-amt="1000">₦1,000</button>
+              <button type="button" class="chip" data-amt="2000">₦2,000</button>
+              <button type="button" class="chip" data-amt="5000">₦5,000</button>
+              <button type="button" class="chip" data-amt="10000">₦10,000</button>
+              <button type="button" class="chip" data-amt="20000">₦20,000</button>
+            </div>
+            <button class="btn btn-primary btn-lg btn-block" type="submit">Continue to payment</button>
+            <p class="hint">You will complete payment on our payment partner’s (Afrstar) secure page, then return here.</p>
+          </form>
+          <div class="notice" role="note"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.01"/></svg><span>Wallet funds can only be used to buy numbers on SPLUG and <strong>cannot be withdrawn</strong> or transferred. Fund only what you plan to use. Cancelled unused numbers are refunded to your wallet. See our <a href="/refund.html">Refund Policy</a>.</span></div>
         </section>
       </div>
 
-      <section class="card" aria-label="Recent transactions">
-        <div class="card-head">
-          <h2>Recent transactions</h2>
-          <a class="btn btn-secondary btn-sm" href="/history.html">Full history</a>
+      <div>
+        <section class="card" aria-label="Recent transactions">
+          <div class="card-head">
+            <h2>Recent transactions</h2>
+            <a class="btn btn-secondary btn-sm" href="/history.html#txnsPanel">Full history</a>
+          </div>
+          <div id="txnList"><div class="skeleton" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
+        </section>
+        <div class="tips" style="margin-top:18px">
+          <h3>About funding</h3>
+          <ul>
+            <li>Your balance updates once the payment partner confirms your payment — usually within a few minutes.</li>
+            <li>Not credited after 30 minutes? Email <a href="mailto:contact@nifelux.com" style="color:var(--brand)">contact@nifelux.com</a> with the amount, time and reference.</li>
+            <li>Prices are charged in naira from this balance only when you confirm a number.</li>
+          </ul>
         </div>
-        <div id="txnList"><div class="skeleton" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
-      </section>
+      </div>
     </div>
   </main>
-  <script src="/assets/js/common.js?v=5"></script>
-  <script src="/assets/js/wallet.js?v=5"></script>
+  <footer class="app-footer">
+    <span>SPLUG is a product of Nifelux Technologies Limited · RC 9980878</span>
+    <nav aria-label="Legal"><a href="/terms.html">Terms</a><a href="/privacy.html">Privacy</a><a href="/refund.html">Refunds</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact</a><a href="https://www.nifelux.com" target="_blank" rel="noopener">nifelux.com</a></nav>
+  </footer>
+  <nav class="tabbar" aria-label="Primary mobile"><a href="/dashboard.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg><span>Buy number</span></a><a href="/wallet.html" aria-current="page"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7H5a2 2 0 0 1 0-4h13v4z"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><path d="M16 14h.01"/></svg><span>Wallet</span></a><a href="/history.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>History</span></a><a href="/contact.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="m5.6 5.6 3.9 3.9M14.5 14.5l3.9 3.9M18.4 5.6l-3.9 3.9M9.5 14.5l-3.9 3.9"/></svg><span>Support</span></a></nav>
+  <script src="/assets/js/common.js?v=6"></script>
+  <script src="/assets/js/wallet.js?v=6"></script>
 </body>
 </html>

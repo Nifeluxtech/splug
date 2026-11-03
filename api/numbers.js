@@ -4,6 +4,7 @@ const smspool = require('../lib/smspool');
 const fivesim = require('../lib/fivesim');
 const { requireUser } = require('../lib/auth');
 const { handler, ok } = require('../lib/respond');
+const orders = require('../lib/orders');
 
 function providerName(value) {
   return value === 'cheap' || value === 'fivesim' ? 'fivesim' : 'smspool';
@@ -37,33 +38,6 @@ async function getQuote(provider, country, service) {
   return provider === 'fivesim'
     ? fivesim.quote(country, service)
     : premiumQuote(service, country);
-}
-
-function providerOrder(raw) {
-  const value = String(raw || '');
-  if (value.startsWith('5sim:')) return { provider: 'fivesim', id: value.slice(5) };
-  return { provider: 'smspool', id: value };
-}
-
-function fivesimOrderResponse(order, fallback) {
-  const sms = Array.isArray(order?.sms) ? order.sms[order.sms.length - 1] : order?.sms;
-  const status = String(order?.status || '').toLowerCase();
-  const otp = sms?.code || sms?.text?.match(/\d{4,8}/)?.[0] || null;
-  // 5sim's "RECEIVED" status means the PHONE NUMBER was issued, not that an SMS arrived.
-  // Only treat the order as received once an actual code is present.
-  let normalized = 'pending';
-  if (otp) normalized = 'received';
-  else if (['timeout', 'expired'].includes(status)) normalized = 'expired';
-  else if (['canceled', 'cancelled', 'banned'].includes(status)) normalized = 'cancelled';
-  else if (status === 'finished') normalized = 'expired';
-  return {
-    id: fallback.id,
-    smspool_order_id: `5sim:${order?.id || fallback.id}`,
-    phone_number: order?.phone || order?.phone_number || fallback.phone_number,
-    status: normalized,
-    otp,
-    full_sms: sms?.text || null,
-  };
 }
 
 module.exports = handler(async (req, res) => {
@@ -151,39 +125,21 @@ module.exports = handler(async (req, res) => {
     if (!order || order.user_id !== user.id) {
       const e = new Error('Order not found'); e.status = 404; throw e;
     }
-    const selected = providerOrder(order.smspool_order_id);
     if (action === 'check') {
-      // Older rows may be marked 'received' with no code (5sim status bug) — keep polling those.
-      const stuck = order.status === 'received' && !order.otp;
-      if (order.status !== 'pending' && !stuck) return ok({ order });
-      if (selected.provider === 'fivesim') {
-        const remote = await fivesim.check(selected.id);
-        const normalized = fivesimOrderResponse(remote, order);
-        if (normalized.status !== 'pending') {
-          await supabase.update('orders', { id: `eq.${order.id}` }, { status: normalized.status, otp: normalized.otp, full_sms: normalized.full_sms });
-        }
-        return ok({ order: { ...order, ...normalized } });
-      }
-      const remote = await smspool.checkSms(selected.id);
-      let status = 'pending';
-      let otp = null, fullSms = null;
-      if (remote.sms) { status = 'received'; otp = remote.sms; fullSms = remote.full_sms || null; }
-      else if ([4, 6, 7].includes(Number(remote.status))) status = 'expired';
-      if (status !== 'pending') await supabase.update('orders', { id: `eq.${order.id}` }, { status, otp, full_sms: fullSms });
-      return ok({ order: { ...order, status, otp, full_sms: fullSms } });
+      return ok({ order: await orders.syncOrder(order) });
     }
+    const refunded = await orders.cancelOrder(order);
+    return ok({ cancelled: true, refunded });
+  }
 
-    if (order.status !== 'pending') {
-      const e = new Error('Only pending orders can be cancelled'); e.status = 400; throw e;
-    }
-    if (selected.provider === 'fivesim') await fivesim.cancel(selected.id);
-    else await smspool.cancelSms(selected.id);
-    await supabase.update('orders', { id: `eq.${order.id}` }, { status: 'cancelled' });
-    await supabase.rpc('credit_wallet', {
-      p_user: user.id, p_amount: order.price, p_type: 'refund',
-      p_reference: selected.id, p_description: 'Refund — order cancelled',
-    });
-    return ok({ cancelled: true, refunded: order.price });
+  // Check this user's waiting numbers older than 5 minutes and auto-refund any that expired unused.
+  if (action === 'sweep') {
+    const cutoff = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const pending = await supabase.select('orders', {
+      user_id: `eq.${user.id}`, status: 'eq.pending', created_at: `lt.${cutoff}`,
+      select: '*', order: 'created_at.asc', limit: '20',
+    }, token);
+    return ok(await orders.sweep(pending || []));
   }
 
   const e = new Error('Unknown action'); e.status = 400; throw e;

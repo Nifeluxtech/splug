@@ -34,6 +34,7 @@
     if (isRegister && username.length < 3) { showError('Choose a username with at least 3 characters.'); form.username.focus(); return; }
     if (!/^\S+@\S+\.\S+$/.test(email)) { showError('Enter a valid email address.'); form.email.focus(); return; }
     if (!password || (isRegister && password.length < 6)) { showError(isRegister ? 'Your password needs at least 6 characters.' : 'Enter your password.'); form.password.focus(); return; }
+    if (isRegister && form.agree && !form.agree.checked) { showError('Please agree to the Terms of Service, Privacy Policy and Refund Policy to continue.'); form.agree.focus(); return; }
 
     setLoading(submitBtn, true, isRegister ? 'Creating account…' : 'Signing in…');
     try {

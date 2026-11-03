@@ -1,5 +1,6 @@
-// SPLUG — Afrstar callback (collection + payout)
-// POST /api/gateway   — set this URL as BOTH the Collection and Payout callback in the Afrstar merchant portal.
+// SPLUG — Afrstar collection (deposit) callback
+// POST /api/gateway   — set this URL as the Collection callback in the Afrstar merchant portal.
+// Wallet is fund-only: payouts/withdrawals are not supported, so only deposit transactions are handled here.
 // Verifies the MD5 signature, matches the stored order, applies the result once, and replies with plain text "success".
 
 const supabase = require('../lib/supabase');
@@ -22,28 +23,19 @@ module.exports = async (req, res) => {
     if (!txn) return text(res, 404, 'unknown order');
 
     const status = Number(ev.status);
-    const isDeposit = txn.type === 'deposit';
+    if (txn.type !== 'deposit') return text(res, 400, 'unsupported transaction type');
 
     // signature (deposit signs with the ORIGINAL order amount we stored)
-    const valid = isDeposit ? afrstar.verifyCollectionCallback(ev, txn.amount) : afrstar.verifyPayoutCallback(ev);
-    if (!valid) return text(res, 401, 'invalid signature');
+    if (!afrstar.verifyCollectionCallback(ev, txn.amount)) return text(res, 401, 'invalid signature');
 
     // idempotent: already settled → just acknowledge
     if (txn.status !== 'pending') return text(res, 200, 'success');
 
-    if (isDeposit) {
-      if (status === 1) {
-        const paid = Number(ev.amount_paid ?? ev.amount);
-        if (!(paid >= Number(txn.amount))) return text(res, 200, 'success'); // underpaid: do not credit automatically
-        await supabase.rpc('finalize_txn', { p_txn: txn.id, p_success: true });
-      }
-      return text(res, 200, 'success');
+    if (status === 1) {
+      const paid = Number(ev.amount_paid ?? ev.amount);
+      if (!(paid >= Number(txn.amount))) return text(res, 200, 'success'); // underpaid: do not credit automatically
+      await supabase.rpc('finalize_txn', { p_txn: txn.id, p_success: true });
     }
-
-    // withdrawal / payout
-    if (afrstar.amt(ev.amount) !== afrstar.amt(txn.amount)) return text(res, 400, 'amount mismatch');
-    if (status === 1) await supabase.rpc('finalize_txn', { p_txn: txn.id, p_success: true });
-    else if (status === 9) await supabase.rpc('finalize_txn', { p_txn: txn.id, p_success: false }); // returns the held funds
     return text(res, 200, 'success');
   } catch (e) {
     return text(res, 500, 'error'); // non-success so Afrstar retries

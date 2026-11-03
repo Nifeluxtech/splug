@@ -1,10 +1,16 @@
-/* SPLUG — history: orders (numbers + OTPs) & transactions */
+/* SPLUG — history: orders (numbers + codes) & wallet transactions */
 (async function () {
   if (!requireAuthPage()) return;
-  mountHeader('history'); mountTabbar('history'); refreshBalanceChip();
+  mountHeader('history'); refreshBalanceChip(); sweepExpired();
 
   const $ = (id) => document.getElementById(id);
-  let orders = [], filter = 'all';
+  let orders = [], filter = 'all', query = '';
+  const effStatus = (o) => {
+    let s = String(o.status || 'pending').toLowerCase();
+    if (s === 'canceled') s = 'cancelled';
+    if (s === 'received' && !o.otp) s = 'pending';
+    return s;
+  };
 
   /* ---------- tabs ---------- */
   function showTab(which) {
@@ -15,36 +21,47 @@
   }
   $('tabOrders').addEventListener('click', () => showTab('orders'));
   $('tabTxns').addEventListener('click', () => showTab('txns'));
+  if (location.hash === '#txnsPanel') showTab('txns');
 
   /* ---------- orders ---------- */
-  const matches = (o) => filter === 'all' || (filter === 'closed' ? ['cancelled', 'expired'].includes(o.status) : o.status === filter);
+  const matches = (o) => {
+    const s = effStatus(o);
+    const okFilter = filter === 'all' || (filter === 'closed' ? ['cancelled', 'expired'].includes(s) : s === filter);
+    const q = query.trim().toLowerCase();
+    const okQuery = !q || [o.service, o.country, o.phone_number, o.otp].some((v) => String(v || '').toLowerCase().includes(q));
+    return okFilter && okQuery;
+  };
 
   function orderRow(o) {
-    const status = String(o.status || 'pending').toLowerCase();
+    const status = effStatus(o);
+    const route = String(o.smspool_order_id || '').startsWith('5sim:') ? 'Budget' : 'Priority';
     return `
       <li class="row">
-        <div>
-          <div class="row-title">${esc(o.service)} <span class="sep">·</span> ${esc(o.country)}</div>
-          <div class="row-sub">${o.phone_number ? `<button class="copy-inline" type="button" data-copy="${esc(o.phone_number)}" title="Copy number">${esc(o.phone_number)}</button> · ` : ''}${esc(fmtDate(o.created_at))}</div>
+        <div class="row-lead">
+          ${serviceLogo(o.service)}
+          <div style="min-width:0">
+            <div class="row-title">${esc(o.service)} <span class="sep">·</span> ${esc(o.country)}</div>
+            <div class="row-sub">${o.phone_number ? `<button class="copy-inline" type="button" data-copy="${esc(o.phone_number)}" title="Copy number">${esc(o.phone_number)}</button> · ` : ''}${esc(route)} · ${esc(fmtDate(o.created_at))}</div>
+          </div>
         </div>
         ${o.otp
-          ? `<button class="otp-pill has-code copy-inline" type="button" data-copy="${esc(o.otp)}" title="Copy code">${esc(o.otp)}</button>`
+          ? `<button class="otp-pill has-code" type="button" data-copy="${esc(o.otp)}" title="Copy code">${esc(o.otp)}</button>`
           : '<div class="otp-pill" title="No code received">––––</div>'}
-        <div class="row-end"><span class="badge ${esc(status)}">${esc(titleCase(status))}</span><span class="amount neg">${naira(o.price)}</span></div>
+        <div class="row-end"><span class="badge ${esc(status)}">${esc(ORDER_STATUS[status] || titleCase(status))}</span><span class="amount neg">${naira(o.price)}</span></div>
       </li>`;
   }
 
   function renderOrders() {
     const rows = orders.filter(matches);
     if (!orders.length) {
-      $('orderFilters').hidden = true;
-      $('ordersList').innerHTML = emptyState({ icon: 'phone', title: 'No orders yet', text: 'Buy your first number and it will be listed here with its code.', href: '/dashboard.html', cta: 'Get a number' });
+      $('orderTools').hidden = true;
+      $('ordersList').innerHTML = emptyState({ icon: 'phone', title: 'No orders yet', text: 'Buy your first number and it will be listed here with its code.', href: '/dashboard.html', cta: 'Buy a number' });
       return;
     }
-    $('orderFilters').hidden = false;
+    $('orderTools').hidden = false;
     $('ordersList').innerHTML = rows.length
       ? `<ul class="list">${rows.map(orderRow).join('')}</ul>`
-      : emptyState({ icon: 'inbox', title: 'Nothing in this view', text: 'Try a different filter.' });
+      : emptyState({ icon: 'inbox', title: 'Nothing in this view', text: 'Try a different filter or search.' });
   }
 
   document.querySelectorAll('#orderFilters .chip').forEach((chip) => chip.addEventListener('click', () => {
@@ -52,6 +69,7 @@
     document.querySelectorAll('#orderFilters .chip').forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
     renderOrders();
   }));
+  $('orderSearch').addEventListener('input', (e) => { query = e.target.value; renderOrders(); });
 
   // tap a number or code to copy it
   document.addEventListener('click', (e) => {
@@ -72,7 +90,7 @@
     const txns = data.transactions || [];
     $('txnsList').innerHTML = txns.length
       ? `<ul class="list">${txns.map(txnRow).join('')}</ul>`
-      : emptyState({ icon: 'wallet', title: 'No transactions yet', text: 'Fund your wallet to get started.', href: '/wallet.html', cta: 'Add funds' });
+      : emptyState({ icon: 'wallet', title: 'No transactions yet', text: 'Fund your wallet to get started.', href: '/wallet.html', cta: 'Fund wallet' });
   } catch (err) {
     $('txnsList').innerHTML = emptyState({ icon: 'alert', title: 'Could not load transactions', text: err.message });
   }

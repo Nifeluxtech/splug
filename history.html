@@ -3,19 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>History — SPLUG</title>
+  <title>History — SPLUG by Nifelux</title>
+  <meta name="description" content="Your SPLUG orders and transactions." />
+  <link rel="canonical" href="https://splug-theta.vercel.app/history.html" />
+  <meta property="og:site_name" content="SPLUG by Nifelux" />
+  <meta property="og:title" content="History — SPLUG by Nifelux" />
+  <meta property="og:description" content="Your SPLUG orders and transactions." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#060912" />
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
-  <meta name="theme-color" content="#0A7A47" />
   <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=4" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=6" />
+  <meta name="robots" content="noindex" />
 </head>
-<body>
-  <header class="topbar"></header>
-  <main class="container">
+<body class="app">
+  <a class="skip" href="#main">Skip to content</a>
+  <aside class="sidebar" id="sidebar" aria-label="App navigation">
+    <a class="brand" href="/dashboard.html" aria-label="SPLUG by Nifelux — home"><svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="8" fill="#22c55e"/><path d="M10 6v5M18 6v5M8 11h12v3a6 6 0 0 1-12 0v-3zM14 20v3" stroke="#03130a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><span class="brand-text">SPLUG<small>by <b>Nifelux</b></small></span></a>
+    <nav class="side-nav" aria-label="Primary">
+      <div class="side-label">Menu</div>
+      <a href="/dashboard.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg><span>Buy number</span></a><a href="/wallet.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7H5a2 2 0 0 1 0-4h13v4z"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><path d="M16 14h.01"/></svg><span>Wallet</span></a><a href="/history.html" aria-current="page"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>History</span></a>
+      <div class="side-label">Help</div>
+      <a href="/contact.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="m5.6 5.6 3.9 3.9M14.5 14.5l3.9 3.9M18.4 5.6l-3.9 3.9M9.5 14.5l-3.9 3.9"/></svg><span>Support</span></a>
+      <a href="/faq.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 2.2-2.4 3.7M12 17v.01"/></svg><span>FAQ</span></a>
+    </nav>
+    <div class="side-foot">
+      <div class="side-promo"><strong>Wallet balance</strong><span class="mono" data-balance>₦—</span><a class="btn btn-primary btn-sm btn-block" href="/wallet.html"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Fund wallet</a></div>
+      <button class="btn btn-quiet btn-block" type="button" data-logout style="justify-content:flex-start"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg> Sign out</button>
+      <div class="side-by">A product of <a href="https://www.nifelux.com" target="_blank" rel="noopener">Nifelux Technologies</a></div>
+    </div>
+  </aside>
+  <div class="side-backdrop" aria-hidden="true"></div>
+  <header class="app-topbar">
+    <button class="icon-btn menu-toggle" id="navOpen" type="button" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <a class="brand" href="/dashboard.html" aria-label="SPLUG by Nifelux — home"><svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="8" fill="#22c55e"/><path d="M10 6v5M18 6v5M8 11h12v3a6 6 0 0 1-12 0v-3zM14 20v3" stroke="#03130a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><span class="brand-text">SPLUG<small>by <b>Nifelux</b></small></span></a>
+    <h1>History</h1>
+    <div class="header-actions">
+      <a class="balance-chip" id="balanceChip" href="/wallet.html" aria-label="Wallet balance — fund wallet"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7H5a2 2 0 0 1 0-4h13v4z"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><path d="M16 14h.01"/></svg><span data-balance>₦—</span><span class="plus" aria-hidden="true">+</span></a>
+      <span class="user-chip" id="userChip" hidden aria-hidden="true"></span>
+      <button class="icon-btn" type="button" data-logout aria-label="Sign out" title="Sign out"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></button>
+    </div>
+  </header>
+  <main class="app-main" id="main">
     <div class="page-head">
-      <h1>History</h1>
-      <p>Your numbers, codes, purchases and wallet movements.</p>
+      <div><h1>History</h1><p>Your numbers, codes, purchases and wallet movements.</p></div>
+      <a class="btn btn-primary btn-sm" href="/dashboard.html"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Buy a number</a>
     </div>
 
     <div class="tabs" role="tablist" aria-label="History type">
@@ -24,11 +57,14 @@
     </div>
 
     <section class="card" id="ordersPanel" role="tabpanel" aria-labelledby="tabOrders">
-      <div class="filters" id="orderFilters" role="group" aria-label="Filter orders" hidden>
-        <button type="button" class="chip" data-filter="all" aria-pressed="true">All</button>
-        <button type="button" class="chip" data-filter="received" aria-pressed="false">Received</button>
-        <button type="button" class="chip" data-filter="pending" aria-pressed="false">Waiting</button>
-        <button type="button" class="chip" data-filter="closed" aria-pressed="false">Cancelled or expired</button>
+      <div id="orderTools" hidden>
+        <label class="search" style="display:block;margin-bottom:12px"><span class="sr-only">Search orders</span><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input class="input" id="orderSearch" type="search" autocomplete="off" placeholder="Search by service, country, number or code" /></label>
+        <div class="filters" id="orderFilters" role="group" aria-label="Filter orders">
+          <button type="button" class="chip" data-filter="all" aria-pressed="true">All</button>
+          <button type="button" class="chip" data-filter="received" aria-pressed="false">Received</button>
+          <button type="button" class="chip" data-filter="pending" aria-pressed="false">Waiting</button>
+          <button type="button" class="chip" data-filter="closed" aria-pressed="false">Cancelled or expired</button>
+        </div>
       </div>
       <div id="ordersList"><div class="skeleton" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
     </section>
@@ -37,7 +73,12 @@
       <div id="txnsList"><div class="skeleton" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
     </section>
   </main>
-  <script src="/assets/js/common.js?v=4"></script>
-  <script src="/assets/js/history.js?v=4"></script>
+  <footer class="app-footer">
+    <span>SPLUG is a product of Nifelux Technologies Limited · RC 9980878</span>
+    <nav aria-label="Legal"><a href="/terms.html">Terms</a><a href="/privacy.html">Privacy</a><a href="/refund.html">Refunds</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact</a><a href="https://www.nifelux.com" target="_blank" rel="noopener">nifelux.com</a></nav>
+  </footer>
+  <nav class="tabbar" aria-label="Primary mobile"><a href="/dashboard.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg><span>Buy number</span></a><a href="/wallet.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7H5a2 2 0 0 1 0-4h13v4z"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><path d="M16 14h.01"/></svg><span>Wallet</span></a><a href="/history.html" aria-current="page"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>History</span></a><a href="/contact.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="m5.6 5.6 3.9 3.9M14.5 14.5l3.9 3.9M18.4 5.6l-3.9 3.9M9.5 14.5l-3.9 3.9"/></svg><span>Support</span></a></nav>
+  <script src="/assets/js/common.js?v=6"></script>
+  <script src="/assets/js/history.js?v=6"></script>
 </body>
 </html>

@@ -3,73 +3,142 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Get a number — SPLUG</title>
+  <title>Buy a number — SPLUG by Nifelux</title>
+  <meta name="description" content="Buy a virtual number for SMS verification." />
+  <link rel="canonical" href="https://splug-theta.vercel.app/dashboard.html" />
+  <meta property="og:site_name" content="SPLUG by Nifelux" />
+  <meta property="og:title" content="Buy a number — SPLUG by Nifelux" />
+  <meta property="og:description" content="Buy a virtual number for SMS verification." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#060912" />
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
-  <meta name="theme-color" content="#0A7A47" />
   <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/css/style.css?v=4" />
+  <link rel="stylesheet" href="/assets/css/style.css?v=6" />
+  <meta name="robots" content="noindex" />
 </head>
-<body>
-  <header class="topbar"></header>
-  <main class="container">
+<body class="app">
+  <a class="skip" href="#main">Skip to content</a>
+  <aside class="sidebar" id="sidebar" aria-label="App navigation">
+    <a class="brand" href="/dashboard.html" aria-label="SPLUG by Nifelux — home"><svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="8" fill="#22c55e"/><path d="M10 6v5M18 6v5M8 11h12v3a6 6 0 0 1-12 0v-3zM14 20v3" stroke="#03130a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><span class="brand-text">SPLUG<small>by <b>Nifelux</b></small></span></a>
+    <nav class="side-nav" aria-label="Primary">
+      <div class="side-label">Menu</div>
+      <a href="/dashboard.html" aria-current="page"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg><span>Buy number</span></a><a href="/wallet.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7H5a2 2 0 0 1 0-4h13v4z"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><path d="M16 14h.01"/></svg><span>Wallet</span></a><a href="/history.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>History</span></a>
+      <div class="side-label">Help</div>
+      <a href="/contact.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="m5.6 5.6 3.9 3.9M14.5 14.5l3.9 3.9M18.4 5.6l-3.9 3.9M9.5 14.5l-3.9 3.9"/></svg><span>Support</span></a>
+      <a href="/faq.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 2.2-2.4 3.7M12 17v.01"/></svg><span>FAQ</span></a>
+    </nav>
+    <div class="side-foot">
+      <div class="side-promo"><strong>Wallet balance</strong><span class="mono" data-balance>₦—</span><a class="btn btn-primary btn-sm btn-block" href="/wallet.html"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Fund wallet</a></div>
+      <button class="btn btn-quiet btn-block" type="button" data-logout style="justify-content:flex-start"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg> Sign out</button>
+      <div class="side-by">A product of <a href="https://www.nifelux.com" target="_blank" rel="noopener">Nifelux Technologies</a></div>
+    </div>
+  </aside>
+  <div class="side-backdrop" aria-hidden="true"></div>
+  <header class="app-topbar">
+    <button class="icon-btn menu-toggle" id="navOpen" type="button" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <a class="brand" href="/dashboard.html" aria-label="SPLUG by Nifelux — home"><svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="8" fill="#22c55e"/><path d="M10 6v5M18 6v5M8 11h12v3a6 6 0 0 1-12 0v-3zM14 20v3" stroke="#03130a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><span class="brand-text">SPLUG<small>by <b>Nifelux</b></small></span></a>
+    <h1>Buy a number</h1>
+    <div class="header-actions">
+      <a class="balance-chip" id="balanceChip" href="/wallet.html" aria-label="Wallet balance — fund wallet"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7H5a2 2 0 0 1 0-4h13v4z"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><path d="M16 14h.01"/></svg><span data-balance>₦—</span><span class="plus" aria-hidden="true">+</span></a>
+      <span class="user-chip" id="userChip" hidden aria-hidden="true"></span>
+      <button class="icon-btn" type="button" data-logout aria-label="Sign out" title="Sign out"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></button>
+    </div>
+  </header>
+  <main class="app-main" id="main">
     <div class="page-head">
-      <h1>Get a number</h1>
-      <p>Choose a route, a service and a country. You'll see the exact price before you pay.</p>
+      <div><h1>Buy a number</h1><p>Choose a route, a service and a country. You will see the exact price before you pay.</p></div>
+      <span class="badge budget" id="routeBadge">Budget route</span>
+    </div>
+
+    <div class="stat-cards">
+      <div class="stat"><div class="ico"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7H5a2 2 0 0 1 0-4h13v4z"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><path d="M16 14h.01"/></svg></div><div style="min-width:0"><span>Wallet balance</span><strong data-balance>₦—</strong></div></div>
+      <div class="stat"><div class="ico blue"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13h5l1.5 3h5L16 13h5"/><path d="M5.5 5h13L21 13v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6z"/></svg></div><div style="min-width:0"><span>Active order</span><strong id="statActive">None</strong></div></div>
+      <div class="stat"><div class="ico violet"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div><div style="min-width:0"><span>Codes received (recent)</span><strong id="statCodes">0</strong></div></div>
     </div>
 
     <div class="dash-grid">
       <section class="card" aria-label="Number builder">
-        <div class="step" id="stepRoute">
-          <h2 class="step-title"><span class="step-n">1</span>Route</h2>
-          <div class="segmented routes" role="radiogroup" aria-label="Route">
-            <button type="button" class="route-opt" role="radio" aria-checked="true" data-provider="cheap"><strong>Budget</strong><small>Lowest price, everyday use</small></button>
-            <button type="button" class="route-opt" role="radio" aria-checked="false" data-provider="premium"><strong>Priority</strong><small>Wider availability</small></button>
+        <div class="step is-done" id="stepRoute">
+          <h2 class="step-title"><span class="step-n">1</span>Choose a route</h2>
+          <div class="route-toggle" role="radiogroup" aria-label="Route">
+            <button type="button" class="route-opt" role="radio" aria-checked="true" data-provider="cheap"><span class="ico"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span><strong>Budget</strong><small>Lowest price, everyday use</small></button>
+            <button type="button" class="route-opt" role="radio" aria-checked="false" data-provider="premium"><span class="ico"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/></svg></span><strong>Priority</strong><small>Wider availability</small></button>
           </div>
         </div>
 
         <div class="step" id="stepService">
-          <h2 class="step-title"><span class="step-n">2</span>Service <span class="step-value" id="serviceValue"></span></h2>
-          <div id="servicePicker"></div>
+          <h2 class="step-title"><span class="step-n">2</span>Pick a service <span class="step-value" id="serviceValue"></span></h2>
+          <div class="step-body">
+            <div class="svc-tools">
+              <label class="search"><span class="sr-only">Search services</span><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input class="input" id="svcSearch" type="search" autocomplete="off" placeholder="Search services, e.g. WhatsApp" /></label>
+            </div>
+            <div class="svc-sub"><span id="svcCount"></span></div>
+            <div class="svc-grid" id="svcGrid" aria-label="Services"><div class="grid-note">Loading services…</div></div>
+          </div>
         </div>
 
         <div class="step is-locked" id="stepCountry">
-          <h2 class="step-title"><span class="step-n">3</span>Country <span class="step-value" id="countryValue"></span></h2>
-          <div id="countryPicker"></div>
+          <h2 class="step-title"><span class="step-n">3</span>Pick a country <span class="step-value" id="countryValue"></span></h2>
+          <div class="step-body"><div id="countryPicker"></div></div>
         </div>
 
         <div class="quote is-empty" id="quote" aria-live="polite">
           <div>
             <div class="quote-label">Your price</div>
             <div class="quote-price" id="priceValue">—</div>
-            <div class="quote-note" id="priceMeta">Select a service and country to see it.</div>
+            <div class="quote-note" id="priceMeta">Pick a service and a country to see the exact price.</div>
           </div>
-          <button class="btn btn-primary btn-lg" id="buyBtn" type="button" disabled>Buy number</button>
+          <button class="btn btn-primary btn-lg" id="buyBtn" type="button" disabled><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14l-1.2 11a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg> Buy number</button>
         </div>
       </section>
 
       <aside class="side" aria-label="Active order">
         <div class="ticket" id="ticket" data-state="idle">
           <div class="ticket-top">
-            <div class="ticket-meta"><span class="ticket-label">Your number</span><span class="badge neutral" id="orderStatus"><i class="dot"></i><span id="orderStatusText">No active order</span></span></div>
-            <div class="ticket-service" id="orderService">Nothing yet</div>
-            <div class="ticket-number"><span class="num" id="orderNumber">—</span><button class="chip-btn" id="copyNumber" type="button" disabled>Copy</button></div>
+            <div class="ticket-meta"><span class="ticket-label">Active order</span><span class="badge neutral" id="orderStatus"><i class="dot"></i><span id="orderStatusText">No active order</span></span></div>
+            <div class="ticket-service"><span id="orderLogo"></span><span id="orderService">Nothing yet</span><span class="badge budget" id="orderRoute" hidden></span></div>
+            <div class="ticket-label">Your number</div>
+            <div class="ticket-number"><span class="num" id="orderNumber">—</span><button class="chip-btn" id="copyNumber" type="button" disabled><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg> Copy</button></div>
           </div>
           <div class="ticket-bottom">
+            <div class="timer" id="timer" hidden><span id="timerLabel">Time left (approx.)</span><div class="timer-bar"><i id="timerBar"></i></div><b id="timerText">20:00</b></div>
             <div class="ticket-label">Verification code</div>
             <div class="otp" id="otpCode" aria-live="polite" aria-label="Verification code"></div>
+            <p class="ticket-sms" id="fullSms" hidden></p>
             <p class="ticket-note" id="ticketNote">Your number and code will appear here once you buy.</p>
             <div class="ticket-actions">
-              <button class="chip-btn" id="copyOtp" type="button" hidden>Copy code</button>
-              <button class="chip-btn btn-ticket-danger" id="cancelBtn" type="button" hidden>Cancel and refund</button>
+              <button class="chip-btn primary" id="copyOtp" type="button" hidden><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg> Copy code</button>
+              <button class="chip-btn" id="checkBtn" type="button" hidden><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 20v-4h-4"/></svg> Check now</button>
+              <button class="chip-btn danger" id="cancelBtn" type="button" hidden><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg> Cancel &amp; refund</button>
+              <button class="chip-btn" id="newBtn" type="button" hidden><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Buy another</button>
             </div>
           </div>
         </div>
         <p class="side-note">Keep this page open while you wait. The code appears automatically.</p>
+
+        <section class="card" aria-label="Recent numbers">
+          <div class="card-head"><h3>Recent numbers</h3><a class="btn btn-quiet btn-sm" href="/history.html">View all</a></div>
+          <div id="recentList"><div class="skeleton" aria-hidden="true"><i></i><i></i></div></div>
+        </section>
+
+        <div class="tips">
+          <h3>Tips for a fast code</h3>
+          <ul>
+            <li>Enter the number on the app right after buying.</li>
+            <li>If nothing arrives after a few minutes, cancel for a refund and try the other route or another country.</li>
+            <li>Numbers are single-use — don’t use them for accounts you’ll need to recover later.</li>
+          </ul>
+        </div>
       </aside>
     </div>
   </main>
-  <script src="/assets/js/common.js?v=4"></script>
-  <script src="/assets/js/dashboard.js?v=4"></script>
+  <footer class="app-footer">
+    <span>SPLUG is a product of Nifelux Technologies Limited · RC 9980878</span>
+    <nav aria-label="Legal"><a href="/terms.html">Terms</a><a href="/privacy.html">Privacy</a><a href="/refund.html">Refunds</a><a href="/faq.html">FAQ</a><a href="/contact.html">Contact</a><a href="https://www.nifelux.com" target="_blank" rel="noopener">nifelux.com</a></nav>
+  </footer>
+  <nav class="tabbar" aria-label="Primary mobile"><a href="/dashboard.html" aria-current="page"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg><span>Buy number</span></a><a href="/wallet.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7H5a2 2 0 0 1 0-4h13v4z"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><path d="M16 14h.01"/></svg><span>Wallet</span></a><a href="/history.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>History</span></a><a href="/contact.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="m5.6 5.6 3.9 3.9M14.5 14.5l3.9 3.9M18.4 5.6l-3.9 3.9M9.5 14.5l-3.9 3.9"/></svg><span>Support</span></a></nav>
+  <script src="/assets/js/common.js?v=6"></script>
+  <script src="/assets/js/dashboard.js?v=6"></script>
 </body>
 </html>
