@@ -17,11 +17,22 @@ module.exports = handler(async (req, res) => {
     if (password.length < 6) {
       const e = new Error('Password must be at least 6 characters'); e.status = 400; throw e;
     }
-    const result = await supabase.signUp(email.trim().toLowerCase(), password, { username: username.trim() });
+    const cleanEmail = email.trim().toLowerCase();
+    // Create the account already confirmed (no email confirmation step), then sign straight in.
+    let created;
+    try {
+      created = await supabase.createConfirmedUser(cleanEmail, password, { username: username.trim() });
+    } catch (err) {
+      if (/already|registered|exists/i.test(err.message || '')) {
+        const e = new Error('An account with this email already exists. Please sign in.'); e.status = 409; throw e;
+      }
+      throw err;
+    }
+    const session = await supabase.signIn(cleanEmail, password);
     return ok({
-      access_token: result.access_token,
-      refresh_token: result.refresh_token,
-      user: { id: result.user?.id, email, username: username.trim() },
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
+      user: { id: created?.id || session.user?.id, email: cleanEmail, username: username.trim() },
     });
   }
 
