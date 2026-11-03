@@ -1,4 +1,4 @@
-// SPLUG API — OTP numbers from 5sim (cheap) or SMSPool (premium).
+// SPLUG API — OTP numbers. Budget and Priority routes (suppliers are internal; never expose them to users).
 const supabase = require('../lib/supabase');
 const smspool = require('../lib/smspool');
 const fivesim = require('../lib/fivesim');
@@ -7,8 +7,9 @@ const { handler, ok } = require('../lib/respond');
 const orders = require('../lib/orders');
 
 function providerName(value) {
-  return value === 'cheap' || value === 'fivesim' ? 'fivesim' : 'smspool';
+  return ['budget', 'cheap', 'fivesim'].includes(value) ? 'fivesim' : 'smspool';
 }
+const routeOf = (provider) => (provider === 'fivesim' ? 'budget' : 'priority');
 
 function names(body = {}) {
   return {
@@ -22,22 +23,25 @@ async function premiumQuote(service, country) {
   try {
     pricing = await smspool.price(service, country);
   } catch (err) {
-    const e = new Error(err?.message || 'Could not fetch the priority price. Try another service or country.'); e.status = 409; throw e;
+    console.error('[splug] priority quote failed:', err?.message);
+    const e = new Error('No SPLUG Priority number is available for this selection. Try another country, or switch to Budget.'); e.status = 409; throw e;
   }
   const usd = Number(pricing?.price ?? pricing?.cost ?? pricing?.[0]?.price ?? pricing?.[0]?.cost ?? 0);
   if (!usd) {
-    const e = new Error('No SMSPool number is available for this selection'); e.status = 409; throw e;
+    const e = new Error('No SPLUG Priority number is available for this selection. Try another country, or switch to Budget.'); e.status = 409; throw e;
   }
-  return { provider: 'smspool', operator: 'any', usd, price: smspool.toNaira(usd), currency: 'NGN' };
+  return { operator: 'any', usd, price: smspool.toNaira(usd), currency: 'NGN' };
 }
 
 async function getQuote(provider, country, service) {
   if (!country || !service) {
     const e = new Error('Choose a country and service first'); e.status = 400; throw e;
   }
-  return provider === 'fivesim'
-    ? fivesim.quote(country, service)
-    : premiumQuote(service, country);
+  const q = provider === 'fivesim'
+    ? await fivesim.quote(country, service)
+    : await premiumQuote(service, country);
+  const { provider: _hidden, ...rest } = q || {};
+  return { ...rest, route: routeOf(provider) };
 }
 
 module.exports = handler(async (req, res) => {
@@ -47,15 +51,15 @@ module.exports = handler(async (req, res) => {
 
   if (action === 'countries') {
     const countries = provider === 'fivesim' ? await fivesim.countries() : await smspool.countries();
-    return ok({ provider, countries });
+    return ok({ route: routeOf(provider), countries });
   }
 
   if (action === 'services') {
     const country = req.query.country;
     if (provider === 'fivesim') {
-      return ok({ provider, services: await fivesim.services(country) });
+      return ok({ route: routeOf(provider), services: await fivesim.services(country) });
     }
-    return ok({ provider, services: await smspool.services(), countries: await smspool.countries() });
+    return ok({ route: routeOf(provider), services: await smspool.services(), countries: await smspool.countries() });
   }
 
   if (action === 'quote') {
@@ -67,14 +71,14 @@ module.exports = handler(async (req, res) => {
     const { country, service, operator } = req.body || {};
     const display = names(req.body);
     const quote = await getQuote(provider, country, service);
-    const reference = `${provider.toUpperCase()}-${Date.now()}`;
+    const reference = `SPLUG-${Date.now()}`;
 
     await supabase.rpc('debit_wallet', {
       p_user: user.id,
       p_amount: quote.price,
       p_type: 'purchase',
       p_reference: reference,
-      p_description: `${display.service} • ${display.country} • ${provider === 'fivesim' ? 'Cheap' : 'Premium'}`,
+      p_description: `${display.service} • ${display.country} • ${provider === 'fivesim' ? 'Budget' : 'Priority'}`,
       p_pending: false,
     });
 
@@ -86,7 +90,7 @@ module.exports = handler(async (req, res) => {
     } catch (err) {
       await supabase.rpc('credit_wallet', {
         p_user: user.id, p_amount: quote.price, p_type: 'refund',
-        p_reference: reference, p_description: `${provider} purchase failed — refund`,
+        p_reference: reference, p_description: 'Refund — number purchase failed',
       });
       throw err;
     }
@@ -111,9 +115,9 @@ module.exports = handler(async (req, res) => {
       saved = await supabase.selectOne('orders', { user_id: `eq.${user.id}`, order: 'created_at.desc', limit: '1', select: '*' }, token);
     }
     return ok({
-      order: saved,
+      order: orders.publicOrder(saved),
       charged: quote.price,
-      provider,
+      route: routeOf(provider),
       operator: quote.operator || operator || 'any',
     });
   }
@@ -126,7 +130,7 @@ module.exports = handler(async (req, res) => {
       const e = new Error('Order not found'); e.status = 404; throw e;
     }
     if (action === 'check') {
-      return ok({ order: await orders.syncOrder(order) });
+      return ok({ order: orders.publicOrder(await orders.syncOrder(order)) });
     }
     const refunded = await orders.cancelOrder(order);
     return ok({ cancelled: true, refunded });

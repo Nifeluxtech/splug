@@ -1,4 +1,4 @@
-/* SPLUG — wallet (fund-only): balance, add funds via Afrstar, recent transactions.
+/* SPLUG — wallet (fund-only): balance, add funds via payment partner, recent transactions.
    Wallet balance is for buying numbers on SPLUG and is not withdrawable. */
 (async function () {
   const $ = (id) => document.getElementById(id);
@@ -52,7 +52,7 @@
     if (!amount || amount < MIN_DEPOSIT) { toast(`Minimum funding amount is ${naira(MIN_DEPOSIT)}.`, 'error'); $('depositAmount').focus(); return; }
     const ok = await confirmDialog({
       title: 'Fund your wallet',
-      rows: [['Amount', naira(amount)], ['Payment', 'Afrstar secure checkout']],
+      rows: [['Amount', naira(amount)], ['Payment', 'Secure checkout']],
       warning: 'Wallet funds can only be used to buy numbers on SPLUG and cannot be withdrawn. Unused numbers you cancel are refunded to your wallet.',
       confirmText: 'Continue to payment',
     });

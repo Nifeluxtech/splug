@@ -5,6 +5,7 @@
 const supabase = require('../lib/supabase');
 const { requireUser } = require('../lib/auth');
 const { handler, ok } = require('../lib/respond');
+const { publicOrder } = require('../lib/orders');
 
 module.exports = handler(async (req, res) => {
   const { user, token } = await requireUser(req);
@@ -17,7 +18,7 @@ module.exports = handler(async (req, res) => {
       limit: '50',
       select: '*',
     }, token);
-    return ok({ orders });
+    return ok({ orders: (orders || []).map(publicOrder) });
   }
 
   if (action === 'transactions') {
@@ -27,7 +28,8 @@ module.exports = handler(async (req, res) => {
       limit: '50',
       select: '*',
     }, token);
-    return ok({ transactions });
+    const clean = (t) => String(t || '').replace(/\s*via afrstar/ig, '').replace(/^(fivesim|smspool)( purchase failed)? — refund$/i, 'Refund — number purchase failed').replace(/^(FIVESIM|SMSPOOL)-/, 'SPLUG-');
+    return ok({ transactions: (transactions || []).map((t) => ({ ...t, description: clean(t.description), reference: clean(t.reference) })) });
   }
 
   const e = new Error('Unknown action'); e.status = 400; throw e;

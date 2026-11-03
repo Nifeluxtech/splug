@@ -4,15 +4,15 @@
   mountHeader('dashboard'); refreshBalanceChip(); sweepExpired();
 
   const $ = (id) => document.getElementById(id);
-  const ORDER_WINDOW_MS = 20 * 60 * 1000; // typical activation window; the provider decides the real expiry
+  const ORDER_WINDOW_MS = 20 * 60 * 1000; // typical activation window; the network decides the real expiry
   const POLL_MS = 6000;
   const state = {
     provider: 'cheap', services: [], countries: [], service: null, quote: null, quoteKey: null,
     order: null, pollTimer: null, tickTimer: null, loadId: 0, search: '', recent: [],
   };
-  const providerApi = () => (state.provider === 'cheap' ? 'fivesim' : 'smspool');
+  const providerApi = () => (state.provider === 'cheap' ? 'budget' : 'priority');
   const routeName = (p = state.provider) => (p === 'cheap' ? 'Budget' : 'Priority');
-  const orderRoute = (o) => (String(o?.smspool_order_id || '').startsWith('5sim:') ? 'Budget' : 'Priority');
+  const orderRoute = (o) => (o?.route === 'budget' ? 'Budget' : 'Priority');
 
   /* ---------- normalisers ---------- */
   const popularRank = (label) => { const i = POPULAR_SERVICES.indexOf(label); return i === -1 ? 999 : i; };
@@ -112,7 +112,7 @@
     try {
       if (state.provider === 'cheap' && !state.countries.length) {
         countryPicker.lock('Loading countries…');
-        const data = await apiCall(API.numbers, { query: { action: 'countries', provider: 'fivesim' } });
+        const data = await apiCall(API.numbers, { query: { action: 'countries', provider: 'budget' } });
         if (myLoad !== state.loadId) return;
         state.countries = normCountries(data.countries);
       }

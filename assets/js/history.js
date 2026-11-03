@@ -34,7 +34,7 @@
 
   function orderRow(o) {
     const status = effStatus(o);
-    const route = String(o.smspool_order_id || '').startsWith('5sim:') ? 'Budget' : 'Priority';
+    const route = o.route === 'budget' ? 'Budget' : 'Priority';
     return `
       <li class="row">
         <div class="row-lead">

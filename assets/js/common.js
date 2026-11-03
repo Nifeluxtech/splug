@@ -137,7 +137,7 @@ const POPULAR_SERVICES = ['WhatsApp', 'Telegram', 'Google', 'TikTok', 'Facebook'
 function serviceInfo(raw) {
   const name = String(raw || '').trim();
   const hit = SERVICE_BRANDS.find(([re]) => re.test(name));
-  const isKey = name === name.toLowerCase() && !/\s/.test(name); // 5sim ids such as "whatsapp"
+  const isKey = name === name.toLowerCase() && !/\s/.test(name); // supplier ids such as "whatsapp"
   const label = hit && (isKey || normKey(hit[2]) === normKey(name)) ? hit[2] : (isKey ? wordsCase(name) : name);
   return { label: label || 'Service', slug: hit ? hit[1] : '', brand: hit ? hit[2] : '' };
 }
@@ -158,7 +158,7 @@ document.addEventListener('error', (e) => {
 }, true);
 
 /* ---------- countries: flags + friendly names ---------- */
-// [ISO2, display name, ...aliases (5sim keys / SMSPool spellings)]
+// [ISO2, display name, ...aliases (supplier keys / spellings)]
 const COUNTRY_TABLE = [
   ['NG', 'Nigeria'], ['GH', 'Ghana'], ['KE', 'Kenya'], ['ZA', 'South Africa', 'southafrica'], ['EG', 'Egypt'], ['MA', 'Morocco'], ['DZ', 'Algeria'], ['TN', 'Tunisia'],
   ['CM', 'Cameroon'], ['CI', 'Côte d’Ivoire', 'ivorycoast', 'ivory coast', 'cote divoire'], ['SN', 'Senegal'], ['BJ', 'Benin'], ['TG', 'Togo'], ['BF', 'Burkina Faso', 'burkinafaso'],

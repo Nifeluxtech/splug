@@ -1,4 +1,4 @@
-// SPLUG API #3/5 — wallet (Afrstar gateway, naira)
+// SPLUG API #3/5 — wallet (payment partner gateway, naira)
 // GET  /api/wallet?action=balance                  → balance
 // POST /api/wallet?action=deposit                  → create Afrstar deposit order (min ₦1,000)
 // Wallet is fund-only: balances are spent on numbers and are not withdrawable.
@@ -50,7 +50,7 @@ module.exports = handler(async (req, res) => {
       amount: Number(amount.toFixed(2)),
       status: 'pending',
       reference,
-      description: 'Wallet deposit via Afrstar',
+      description: 'Wallet deposit',
     });
 
     return ok({ reference, paymentUrl: gateway.pay_url || null });
