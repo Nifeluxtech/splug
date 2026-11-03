@@ -242,6 +242,35 @@ async function apiCall(url, { method = 'GET', body, query = {}, retry = true } =
   return json.data;
 }
 
+/* ---------- theme (light / dark) ---------- */
+// The inline script in <head> sets data-theme before first paint; this keeps it in sync afterwards.
+const THEME_KEY = 'splug_theme';
+const THEME_COLORS = { dark: '#060912', light: '#f5f7fb' };
+const themeMedia = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
+function savedTheme() { try { const t = localStorage.getItem(THEME_KEY); return t === 'light' || t === 'dark' ? t : null; } catch { return null; } }
+function currentTheme() { return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark'; }
+function applyTheme(theme, save = false) {
+  const t = theme === 'light' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', THEME_COLORS[t]);
+  if (save) { try { localStorage.setItem(THEME_KEY, t); } catch {} }
+  const label = t === 'light' ? 'Switch to dark theme' : 'Switch to light theme';
+  document.querySelectorAll('[data-theme-toggle]').forEach((b) => { b.setAttribute('aria-label', label); b.title = label; });
+}
+applyTheme(savedTheme() || currentTheme());
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest && e.target.closest('[data-theme-toggle]');
+  if (btn) applyTheme(currentTheme() === 'light' ? 'dark' : 'light', true);
+});
+// follow the device setting live until the user makes an explicit choice
+if (themeMedia) {
+  const onChange = (e) => { if (!savedTheme()) applyTheme(e.matches ? 'light' : 'dark'); };
+  themeMedia.addEventListener ? themeMedia.addEventListener('change', onChange) : themeMedia.addListener(onChange);
+}
+// keep tabs in sync when the choice changes in another tab
+window.addEventListener('storage', (e) => { if (e.key === THEME_KEY && savedTheme()) applyTheme(savedTheme()); });
+
 /* ---------- shell ---------- */
 // Pages ship their header/sidebar/footer as static HTML. These functions wire them up.
 function wirePublicHeader() {
