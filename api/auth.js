@@ -8,7 +8,7 @@ const settings = require('../lib/settings');
 
 module.exports = handler(async (req, res) => {
   const action = req.query.action || (req.body && req.body.action);
-  const { email, password, username } = req.body || {};
+  const { email, password, username, ref } = req.body || {};
 
   // register → creates auth user + profile row (via SQL trigger)
   if (action === 'register') {
@@ -23,7 +23,7 @@ module.exports = handler(async (req, res) => {
     // Create the account already confirmed (no email confirmation step), then sign straight in.
     let created;
     try {
-      created = await supabase.createConfirmedUser(cleanEmail, password, { username: username.trim() });
+      created = await supabase.createConfirmedUser(cleanEmail, password, { username: username.trim(), ...(ref ? { ref: String(ref).trim().toUpperCase().slice(0, 12) } : {}) });
     } catch (err) {
       if (/already|registered|exists/i.test(err.message || '')) {
         const e = new Error('An account with this email already exists. Please sign in.'); e.status = 409; throw e;

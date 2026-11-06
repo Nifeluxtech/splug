@@ -93,6 +93,7 @@ module.exports = handler(async (req) => {
       deposits_24h: sum(dep.filter(ok24)), deposits_7d: sum(dep),
       sales_24h: sum(pur.filter(ok24)) - sum(ref.filter(ok24)), sales_7d: sum(pur) - sum(ref),
       cashback_7d: sum(txWeek.filter((t) => t.type === 'cashback')),
+      referral_7d: sum(txWeek.filter((t) => t.type === 'referral')),
       pending_deposits: pendingDeposits,
       success_rate_7d: recentOrders.length ? Math.round((received / recentOrders.length) * 100) : null,
       days,
@@ -101,7 +102,7 @@ module.exports = handler(async (req) => {
 
   // ---------- users ----------
   if (action === 'users' && !post) {
-    const [au, profiles] = await Promise.all([authUsers(Number(req.query.page) || 1, 500), rows('profiles', 'select=id,username,balance,created_at&limit=100000')]);
+    const [au, profiles] = await Promise.all([authUsers(Number(req.query.page) || 1, 500), rows('profiles', 'select=id,username,balance,created_at,referral_code,referred_by&limit=100000')]);
     const byId = new Map(profiles.map((p) => [p.id, p]));
     const { env, list } = await adminEmails();
     const admins = new Set([...env, ...list.map((a) => a.email)]);
@@ -110,6 +111,8 @@ module.exports = handler(async (req) => {
       id: u.id, email: u.email, username: byId.get(u.id)?.username || u.user_metadata?.username || '',
       balance: Number(byId.get(u.id)?.balance || 0), created_at: u.created_at, last_sign_in_at: u.last_sign_in_at,
       banned: isBanned(u), admin: admins.has(String(u.email || '').toLowerCase()),
+      referral_code: byId.get(u.id)?.referral_code || '', referred_by: byId.get(u.id)?.referred_by || null,
+      referrals: profiles.filter((p) => p.referred_by === u.id).length,
     })).filter((u) => !q || `${u.email} ${u.username} ${u.id}`.toLowerCase().includes(q))
       .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
     return ok({ users });
@@ -181,12 +184,25 @@ module.exports = handler(async (req) => {
     if (!txn) bad('Transaction not found', 404);
     if (txn.status !== 'pending') bad('Only pending transactions can be changed');
     await supabase.rpc('finalize_txn', { p_txn: id, p_success: op === 'approve' });
-    if (op === 'approve' && txn.type === 'deposit') {
-      await settings.load();
-      const cb = settings.cashbackFor(txn.amount);
-      if (cb > 0) await supabase.rpc('credit_wallet', { p_user: txn.user_id, p_amount: cb, p_type: 'cashback', p_reference: `CB-${txn.reference}`, p_description: `Deposit cashback (${settings.get().cashback_percent}%)` });
-    }
+    if (op === 'approve') await require('../lib/rewards').onDepositConfirmed(txn);
     return ok({ id, status: op === 'approve' ? 'success' : 'failed' });
+  }
+
+  // ---------- referrals ----------
+  if (action === 'referrals') {
+    const [profiles, rewards] = await Promise.all([
+      rows('profiles', 'select=id,username,referral_code,referred_by,created_at&referred_by=not.is.null&order=created_at.desc&limit=1000'),
+      rows('transactions', 'select=user_id,amount,reference,description,created_at&type=eq.referral&order=created_at.desc&limit=2000'),
+    ]);
+    const refIds = [...new Set(profiles.map((p) => p.referred_by))];
+    const referrers = refIds.length ? await rows('profiles', `select=id,username,referral_code&id=in.(${refIds.join(',')})`) : [];
+    const name = new Map(referrers.map((r) => [r.id, r]));
+    const board = refIds.map((id) => ({
+      id, username: name.get(id)?.username || '', code: name.get(id)?.referral_code || '',
+      invited: profiles.filter((p) => p.referred_by === id).length,
+      earned: sum(rewards.filter((t) => t.user_id === id && String(t.reference).startsWith('REF-'))),
+    })).sort((a, b) => b.earned - a.earned || b.invited - a.invited);
+    return ok({ total_invited: profiles.length, total_paid: sum(rewards), board, recent: rewards.slice(0, 50) });
   }
 
   // ---------- settings ----------

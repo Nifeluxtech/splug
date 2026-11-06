@@ -749,3 +749,6 @@ body.app { background: var(--bg); }
 body.admin .app-topbar, body.admin .app-main { margin-left: 0; }
 body.admin .app-topbar .brand { display: inline-flex; }
 body.admin .app-main { max-width: 1240px; margin-inline: auto; }
+
+.ref-link { margin: 10px 0 14px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); border: 1px dashed var(--line); font-size: 13.5px; word-break: break-all; }
+.ref-actions { display: flex; gap: 10px; flex-wrap: wrap; }

@@ -40,6 +40,7 @@
         <button role="tab" data-tab="users" aria-selected="false">Users</button>
         <button role="tab" data-tab="orders" aria-selected="false">Orders</button>
         <button role="tab" data-tab="transactions" aria-selected="false">Transactions</button>
+        <button role="tab" data-tab="referrals" aria-selected="false">Referrals</button>
         <button role="tab" data-tab="settings" aria-selected="false">Settings</button>
         <button role="tab" data-tab="admins" aria-selected="false">Admins</button>
       </nav>
@@ -56,8 +57,14 @@
         <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>User</th><th>Service</th><th>Number</th><th>Route</th><th>Price</th><th>Code</th><th>Status</th><th></th></tr></thead><tbody id="orderRows"></tbody></table></div>
       </section>
       <section class="admin-panel" id="p-transactions" hidden>
-        <div class="toolbar"><select class="admin-select" id="txnType"><option value="">All types</option><option value="deposit">Deposits</option><option value="purchase">Purchases</option><option value="refund">Refunds</option><option value="cashback">Cashback</option><option value="admin_credit">Admin credits</option><option value="admin_debit">Admin deductions</option></select><select class="admin-select" id="txnStatus"><option value="">All statuses</option><option value="pending">Pending</option><option value="success">Success</option><option value="failed">Failed</option></select><input class="input" id="txnSearch" type="search" placeholder="Reference" /><button class="btn btn-secondary btn-sm" id="txnReload" type="button">Refresh</button></div>
+        <div class="toolbar"><select class="admin-select" id="txnType"><option value="">All types</option><option value="deposit">Deposits</option><option value="purchase">Purchases</option><option value="refund">Refunds</option><option value="cashback">Cashback</option><option value="referral">Referral bonuses</option><option value="admin_credit">Admin credits</option><option value="admin_debit">Admin deductions</option></select><select class="admin-select" id="txnStatus"><option value="">All statuses</option><option value="pending">Pending</option><option value="success">Success</option><option value="failed">Failed</option></select><input class="input" id="txnSearch" type="search" placeholder="Reference" /><button class="btn btn-secondary btn-sm" id="txnReload" type="button">Refresh</button></div>
         <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>User</th><th>Type</th><th>Amount</th><th>Reference</th><th>Status</th><th></th></tr></thead><tbody id="txnRows"></tbody></table></div>
+      </section>
+      <section class="admin-panel" id="p-referrals" hidden>
+        <div class="kpis" id="refKpis"></div>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Referrer</th><th>Code</th><th>Invited</th><th>Earned</th></tr></thead><tbody id="refBoard"></tbody></table></div>
+        <h3 style="margin-top:18px">Recent referral payouts</h3>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>User</th><th>Amount</th><th>Details</th></tr></thead><tbody id="refRecent"></tbody></table></div>
       </section>
       <section class="admin-panel" id="p-settings" hidden>
 <div class="set-grid">
@@ -73,6 +80,15 @@
     <div class="set-row"><div><label for="s_cashback_percent">Cashback (%)</label><p>Percentage of the deposit amount.</p></div><input class="input" id="s_cashback_percent" data-key="cashback_percent" type="number" step="any" min="0" /></div>
     <div class="set-row"><div><label for="s_cashback_min_deposit">Minimum qualifying deposit (₦)</label><p>Deposits below this get no cashback.</p></div><input class="input" id="s_cashback_min_deposit" data-key="cashback_min_deposit" type="number" step="any" min="0" /></div>
     <div class="set-row"><div><label for="s_cashback_max">Max cashback per deposit (₦)</label><p>0 means no cap.</p></div><input class="input" id="s_cashback_max" data-key="cashback_max" type="number" step="any" min="0" /></div>
+  </section>
+  <section class="card"><h2>Referrals</h2><p class="hint">Referrers earn a % of each confirmed deposit their invitees make.</p>
+    <div class="set-row"><div><label for="s_referral_enabled">Referrals enabled</label><p>Pay referral rewards.</p></div><label class="switch"><input id="s_referral_enabled" data-key="referral_enabled" type="checkbox" /><span></span></label></div>
+    <div class="set-row"><div><label for="s_referral_percent">Referral reward (%)</label><p>Share of each invitee deposit paid to the referrer.</p></div><input class="input" id="s_referral_percent" data-key="referral_percent" type="number" step="any" min="0" /></div>
+    <div class="set-row"><div><label for="s_referral_min_deposit">Minimum qualifying deposit (₦)</label><p>Invitee deposits below this earn nothing.</p></div><input class="input" id="s_referral_min_deposit" data-key="referral_min_deposit" type="number" step="any" min="0" /></div>
+    <div class="set-row"><div><label for="s_referral_max_per_deposit">Max reward per deposit (₦)</label><p>0 means no cap.</p></div><input class="input" id="s_referral_max_per_deposit" data-key="referral_max_per_deposit" type="number" step="any" min="0" /></div>
+    <div class="set-row"><div><label for="s_referral_deposit_limit">Rewarded deposits per invitee</label><p>e.g. 1 = first deposit only. 0 means every deposit.</p></div><input class="input" id="s_referral_deposit_limit" data-key="referral_deposit_limit" type="number" step="any" min="0" /></div>
+    <div class="set-row"><div><label for="s_referral_welcome_bonus">Welcome bonus for invitee (₦)</label><p>Paid to the new user on their first deposit. 0 = off.</p></div><input class="input" id="s_referral_welcome_bonus" data-key="referral_welcome_bonus" type="number" step="any" min="0" /></div>
+    <div class="set-row"><div><label for="s_referral_welcome_min_deposit">Welcome bonus minimum deposit (₦)</label><p>First deposit must be at least this.</p></div><input class="input" id="s_referral_welcome_min_deposit" data-key="referral_welcome_min_deposit" type="number" step="any" min="0" /></div>
   </section>
   <section class="card"><h2>Pricing</h2><p class="hint">Number price = supplier USD × rate × margin, rounded up.</p>
     <div class="set-row"><div><label for="s_ngn_per_usd">Exchange rate (₦ per $1)</label><p>Used for every route.</p></div><input class="input" id="s_ngn_per_usd" data-key="ngn_per_usd" type="number" step="any" min="0" /></div>

@@ -454,6 +454,7 @@ const TXN = {
   refund: { label: 'Refund', dir: 'in', icon: 'undo' },
   purchase: { label: 'Number purchase', dir: 'out', icon: 'cart' },
   cashback: { label: 'Deposit cashback', dir: 'in', icon: 'down' },
+  referral: { label: 'Referral bonus', dir: 'in', icon: 'down' },
   admin_credit: { label: 'Balance credit', dir: 'in', icon: 'down' },
   admin_debit: { label: 'Balance deduction', dir: 'out', icon: 'up' },
   withdrawal: { label: 'Withdrawal (legacy)', dir: 'out', icon: 'up' }, // historical rows only; withdrawals are no longer offered

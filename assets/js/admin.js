@@ -44,7 +44,7 @@
         k('Orders (24h)', stats.orders_24h.toLocaleString(), `${stats.orders_total.toLocaleString()} all time`),
         k('Waiting orders', stats.orders_pending.toLocaleString()),
         k('Pending deposits', stats.pending_deposits.toLocaleString(), 'awaiting payment'),
-        k('Code success (7d)', stats.success_rate_7d == null ? '—' : `${stats.success_rate_7d}%`, `Cashback 7d: ${ngn(stats.cashback_7d)}`),
+        k('Code success (7d)', stats.success_rate_7d == null ? '—' : `${stats.success_rate_7d}%`, `Cashback 7d: ${ngn(stats.cashback_7d)} · Referrals 7d: ${ngn(stats.referral_7d)}`),
       ].join('');
       drawBars();
     } catch (err) { $('kpis').innerHTML = `<div class="kpi"><span>${esc(err.message)}</span></div>`; }
@@ -72,7 +72,7 @@
     const list = users.filter((u) => !q || `${u.email} ${u.username} ${u.id}`.toLowerCase().includes(q));
     $('userCount').textContent = `${list.length} of ${users.length} users`;
     $('userRows').innerHTML = list.length ? list.map((u) => `<tr>
-      <td><strong>${esc(u.username || '—')}</strong>${u.admin ? ' <span class="badge received">Admin</span>' : ''}<div class="sub">${esc(u.email)}</div></td>
+      <td><strong>${esc(u.username || '—')}</strong>${u.admin ? ' <span class="badge received">Admin</span>' : ''}<div class="sub">${esc(u.email)}</div><div class="sub">Code ${esc(u.referral_code || '—')}${u.referrals ? ` · ${u.referrals} invited` : ''}${u.referred_by ? ` · referred by ${esc(userEmail.get(u.referred_by) || short(u.referred_by))}` : ''}</div></td>
       <td class="num">${ngn(u.balance)}</td>
       <td class="sub">${esc(fmtDate(u.created_at))}</td>
       <td class="sub">${u.last_sign_in_at ? esc(fmtDate(u.last_sign_in_at)) : '—'}</td>
@@ -174,6 +174,18 @@
     try { await post('txn', { id: b.dataset.txn, op: b.dataset.op }); toast(approve ? 'Deposit approved and credited.' : 'Marked as failed.'); loadTxns(); }
     catch (err) { toast(err.message, 'error'); }
   });
+
+  /* ---------- referrals ---------- */
+  loaders.referrals = async () => {
+    $('refBoard').innerHTML = loading(4);
+    try {
+      if (!users.length) { try { users = (await A('users')).users; users.forEach((u) => userEmail.set(u.id, u.email)); } catch {} }
+      const d = await A('referrals');
+      $('refKpis').innerHTML = `<div class="kpi"><span>Referred sign-ups</span><strong>${d.total_invited}</strong></div><div class="kpi"><span>Rewards paid</span><strong>${ngn(d.total_paid)}</strong></div><div class="kpi"><span>Active referrers</span><strong>${d.board.length}</strong></div>`;
+      $('refBoard').innerHTML = d.board.length ? d.board.map((r) => `<tr><td>${esc(r.username || '—')}<div class="sub">${who(r.id)}</div></td><td class="mono">${esc(r.code)}</td><td class="num">${r.invited}</td><td class="num">${ngn(r.earned)}</td></tr>`).join('') : empty(4, 'No referrals yet.');
+      $('refRecent').innerHTML = d.recent.length ? d.recent.map((t) => `<tr><td class="sub">${esc(fmtDate(t.created_at))}</td><td>${who(t.user_id)}</td><td class="num">${ngn(t.amount)}</td><td class="sub">${esc(t.description || '')}</td></tr>`).join('') : empty(4, 'No payouts yet.');
+    } catch (err) { $('refBoard').innerHTML = empty(4, err.message); }
+  };
 
   /* ---------- settings ---------- */
   let current = {};

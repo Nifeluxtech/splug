@@ -2,6 +2,14 @@
 function nextUrl() { const n = new URLSearchParams(location.search).get('next') || ''; return /^\/[a-z0-9/_-]*$/i.test(n) ? n : '/dashboard.html'; }
 (function () {
   const isRegister = document.body.dataset.mode === 'register';
+  // referral code from ?ref= (kept for 30 days so a later sign-up still counts)
+  try {
+    const q = new URLSearchParams(location.search).get('ref');
+    if (q) localStorage.setItem('splug_ref', JSON.stringify({ code: q.trim().toUpperCase().slice(0, 12), at: Date.now() }));
+    const saved = JSON.parse(localStorage.getItem('splug_ref') || 'null');
+    const el = document.getElementById('ref');
+    if (el && saved && Date.now() - saved.at < 30 * 864e5) el.value = saved.code;
+  } catch {}
   mountHeader(isRegister ? 'register' : 'login');
   // already signed in → straight to the dashboard
   if (store.token) { window.location.replace(nextUrl()); return; }
@@ -40,7 +48,7 @@ function nextUrl() { const n = new URLSearchParams(location.search).get('next') 
     setLoading(submitBtn, true, isRegister ? 'Creating account…' : 'Signing in…');
     try {
       const body = { action: isRegister ? 'register' : 'login', email, password };
-      if (isRegister) body.username = username;
+      if (isRegister) { body.username = username; const r = (form.ref?.value || '').trim(); if (r) body.ref = r; }
       const data = await apiCall(API.auth, { method: 'POST', body });
       store.token = data.access_token;
       store.refreshToken = data.refresh_token;

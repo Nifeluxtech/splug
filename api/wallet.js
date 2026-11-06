@@ -67,5 +67,25 @@ module.exports = handler(async (req, res) => {
     return ok({ reference, amount: credit, fee, total, paymentUrl: gateway.pay_url || null });
   }
 
+  // referral programme: my code, link, invitees and earnings
+  if (action === 'referrals') {
+    const cfg = await settings.load();
+    const me = await supabase.selectAdmin('profiles', { id: `eq.${user.id}`, select: 'referral_code', limit: '1' });
+    const invited = await supabase.selectAdmin('profiles', { referred_by: `eq.${user.id}`, select: 'username,created_at', order: 'created_at.desc', limit: '200' });
+    const rewards = await supabase.selectAdmin('transactions', { user_id: `eq.${user.id}`, type: 'eq.referral', reference: 'like.REF-*', select: 'amount,description,created_at', order: 'created_at.desc', limit: '200' });
+    const site = (process.env.SITE_URL || `https://${req.headers.host}`).replace(/\/$/, '');
+    const code = me?.[0]?.referral_code || '';
+    const mask = (u) => { const s = String(u || 'user'); return s.length <= 3 ? s[0] + '**' : s.slice(0, 2) + '***' + s.slice(-1); };
+    return ok({
+      enabled: !!cfg.referral_enabled, percent: cfg.referral_percent, min_deposit: cfg.referral_min_deposit,
+      max_per_deposit: cfg.referral_max_per_deposit, deposit_limit: cfg.referral_deposit_limit,
+      welcome_bonus: cfg.referral_welcome_bonus, welcome_min_deposit: cfg.referral_welcome_min_deposit,
+      code, link: code ? `${site}/register?ref=${code}` : '',
+      invited: (invited || []).map((p) => ({ name: mask(p.username), joined: p.created_at })),
+      earned: (rewards || []).reduce((a, t) => a + Number(t.amount || 0), 0),
+      rewards: (rewards || []).slice(0, 30),
+    });
+  }
+
   const e = new Error('Unknown action'); e.status = 400; throw e;
 });
