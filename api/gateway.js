@@ -6,8 +6,25 @@
 const supabase = require('../lib/supabase');
 const afrstar = require('../lib/afrstar');
 const { checkoutTotal } = require('../lib/fees');
+const settings = require('../lib/settings');
 
 const text = (res, code, body) => { res.statusCode = code; res.setHeader('Content-Type', 'text/plain'); res.end(body); };
+
+// Deposit cashback (admin setting). Unique reference CB:<txn id> keeps it to one payout per deposit.
+async function payCashback(txn) {
+  try {
+    await settings.load();
+    const cb = settings.cashbackFor(txn.amount);
+    if (!(cb > 0)) return;
+    const ref = `CB-${txn.reference}`;
+    const dup = await supabase.selectAdmin('transactions', { reference: `eq.${ref}`, limit: '1', select: 'id' });
+    if (dup && dup.length) return;
+    await supabase.rpc('credit_wallet', {
+      p_user: txn.user_id, p_amount: cb, p_type: 'cashback', p_reference: ref,
+      p_description: `Deposit cashback (${settings.get().cashback_percent}%)`,
+    });
+  } catch (e) { console.error('[splug] cashback failed:', e.message); }
+}
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return text(res, 405, 'method not allowed');
@@ -37,6 +54,7 @@ module.exports = async (req, res) => {
       const paid = Number(ev.amount_paid ?? ev.amount);
       if (!(paid >= charged)) return text(res, 200, 'success'); // underpaid: do not credit automatically
       await supabase.rpc('finalize_txn', { p_txn: txn.id, p_success: true });
+      await payCashback(txn);
     }
     return text(res, 200, 'success');
   } catch (e) {

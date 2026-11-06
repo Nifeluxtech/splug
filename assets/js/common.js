@@ -1,7 +1,7 @@
 /* SPLUG by Nifelux — shared shell, API client, session, formatting, catalogue helpers, dialogs and pickers */
 
 const API = {
-  auth: '/api/auth', numbers: '/api/numbers', wallet: '/api/wallet', history: '/api/history',
+  auth: '/api/auth', numbers: '/api/numbers', wallet: '/api/wallet', history: '/api/history', admin: '/api/admin',
 };
 
 const store = {
@@ -453,6 +453,9 @@ const TXN = {
   deposit: { label: 'Wallet funding', dir: 'in', icon: 'down' },
   refund: { label: 'Refund', dir: 'in', icon: 'undo' },
   purchase: { label: 'Number purchase', dir: 'out', icon: 'cart' },
+  cashback: { label: 'Deposit cashback', dir: 'in', icon: 'down' },
+  admin_credit: { label: 'Balance credit', dir: 'in', icon: 'down' },
+  admin_debit: { label: 'Balance deduction', dir: 'out', icon: 'up' },
   withdrawal: { label: 'Withdrawal (legacy)', dir: 'out', icon: 'up' }, // historical rows only; withdrawals are no longer offered
 };
 function txnRow(t) {
@@ -493,3 +496,23 @@ async function sweepExpired() {
     return r;
   } catch { return null; }
 }
+
+/* ---------- site config (admin settings): announcement + maintenance banner ---------- */
+let _siteConfig = null;
+function siteConfig() {
+  if (!_siteConfig) _siteConfig = fetch('/api/admin?action=public').then((r) => r.json()).then((j) => j.data || {}).catch(() => ({}));
+  return _siteConfig;
+}
+(function showSiteBanner() {
+  if (document.body && document.body.classList.contains('admin')) return;
+  siteConfig().then((c) => {
+    const text = c.maintenance_mode ? (c.maintenance_message || 'SPLUG is under maintenance.') : (c.announcement || '');
+    if (!text) return;
+    const bar = document.createElement('div');
+    bar.className = 'site-banner' + (c.maintenance_mode ? ' warn' : '');
+    bar.setAttribute('role', 'status');
+    bar.textContent = text;
+    const anchor = document.querySelector('.app-topbar') || document.querySelector('header');
+    if (anchor) anchor.insertAdjacentElement('afterend', bar); else document.body.prepend(bar);
+  });
+})();

@@ -1,9 +1,10 @@
 /* SPLUG — login & register pages */
+function nextUrl() { const n = new URLSearchParams(location.search).get('next') || ''; return /^\/[a-z0-9/_-]*$/i.test(n) ? n : '/dashboard.html'; }
 (function () {
   const isRegister = document.body.dataset.mode === 'register';
   mountHeader(isRegister ? 'register' : 'login');
   // already signed in → straight to the dashboard
-  if (store.token) { window.location.replace('/dashboard.html'); return; }
+  if (store.token) { window.location.replace(nextUrl()); return; }
 
   const form = document.getElementById('authForm');
   const submitBtn = form.querySelector('button[type=submit]');
@@ -43,7 +44,7 @@
       const data = await apiCall(API.auth, { method: 'POST', body });
       store.token = data.access_token;
       store.refreshToken = data.refresh_token;
-      window.location.href = '/dashboard.html';
+      window.location.href = nextUrl();
     } catch (err) {
       showError(err.message);
       setLoading(submitBtn, false);

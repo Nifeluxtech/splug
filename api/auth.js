@@ -4,6 +4,7 @@
 
 const supabase = require('../lib/supabase');
 const { handler, ok } = require('../lib/respond');
+const settings = require('../lib/settings');
 
 module.exports = handler(async (req, res) => {
   const action = req.query.action || (req.body && req.body.action);
@@ -11,6 +12,7 @@ module.exports = handler(async (req, res) => {
 
   // register → creates auth user + profile row (via SQL trigger)
   if (action === 'register') {
+    if (!(await settings.load()).registration_enabled) { const e = new Error('New sign-ups are paused right now. Please check back soon.'); e.status = 403; throw e; }
     if (!username || !email || !password) {
       const e = new Error('Username, email and password are required'); e.status = 400; throw e;
     }

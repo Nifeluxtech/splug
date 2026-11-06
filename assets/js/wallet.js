@@ -2,10 +2,15 @@
    Wallet balance is for buying numbers on SPLUG and is not withdrawable. */
 (async function () {
   const $ = (id) => document.getElementById(id);
-  const MIN_DEPOSIT = 500;
-  const FEE_RATE = 0.03;
-  const feeOf = (a) => Math.ceil(a * FEE_RATE);
-  const BANK_NOTE = 'OPay and PalmPay are currently unavailable for deposits. Please pay with any other bank.';
+  let MIN_DEPOSIT = 500, MAX_DEPOSIT = 0, FEE_PCT = 3, CFG = {};
+  let BANK_NOTE = 'OPay and PalmPay are currently unavailable for deposits. Please pay with any other bank.';
+  const feeOf = (a) => Math.ceil(a * FEE_PCT / 100);
+  const cashbackOf = (a) => {
+    if (!CFG.cashback_enabled || !(CFG.cashback_percent > 0) || a < Number(CFG.cashback_min_deposit || 0)) return 0;
+    let c = Math.floor(a * CFG.cashback_percent) / 100;
+    if (CFG.cashback_max > 0) c = Math.min(c, CFG.cashback_max);
+    return c;
+  };
 
   /* ---------- amount shortcuts (plain DOM, wired first) ---------- */
   function syncChips() {
@@ -18,10 +23,26 @@
   function syncFee() {
     const a = Number($('depositAmount').value);
     const el = $('feeHint'); if (!el) return;
-    el.textContent = a > 0 ? `3% service fee: ${naira(feeOf(a))} · You pay ${naira(a + feeOf(a))}` : 'Minimum ₦500. A 3% service fee is added at checkout.';
+    const cb = cashbackOf(a);
+    el.textContent = a > 0
+      ? `${FEE_PCT}% service fee: ${naira(feeOf(a))} · You pay ${naira(a + feeOf(a))}${cb ? ` · Cashback ${naira(cb)}` : ''}`
+      : `Minimum ${nairaShort(MIN_DEPOSIT)}.${FEE_PCT ? ` A ${FEE_PCT}% service fee is added at checkout.` : ''}`;
   }
   $('depositAmount').addEventListener('input', syncFee);
   document.querySelectorAll('.chip[data-amt]').forEach((chip) => chip.addEventListener('click', syncFee));
+
+  // live funding rules from admin settings
+  try {
+    CFG = await siteConfig();
+    if (CFG.min_deposit) MIN_DEPOSIT = Number(CFG.min_deposit);
+    MAX_DEPOSIT = Number(CFG.max_deposit || 0);
+    if (CFG.deposit_fee_percent != null) FEE_PCT = Number(CFG.deposit_fee_percent);
+    if (CFG.bank_notice != null) BANK_NOTE = CFG.bank_notice;
+    const n = document.getElementById('bankNotice');
+    if (n) { if (BANK_NOTE) n.querySelector('span').textContent = BANK_NOTE; else n.hidden = true; }
+    $('depositAmount').min = String(MIN_DEPOSIT);
+    syncFee();
+  } catch {}
 
   if (typeof requireAuthPage !== 'function') { console.error('common.js is out of date — copy the full project.'); return; }
   if (!requireAuthPage()) return;
@@ -59,11 +80,14 @@
   $('depositForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const amount = Number($('depositAmount').value);
+    if (CFG.maintenance_mode || CFG.deposits_enabled === false) { toast(CFG.maintenance_mode ? (CFG.maintenance_message || 'SPLUG is under maintenance.') : 'Wallet funding is paused right now.', 'error'); return; }
     if (!amount || amount < MIN_DEPOSIT) { toast(`Minimum funding amount is ${naira(MIN_DEPOSIT)}.`, 'error'); $('depositAmount').focus(); return; }
+    if (MAX_DEPOSIT > 0 && amount > MAX_DEPOSIT) { toast(`Maximum funding amount is ${naira(MAX_DEPOSIT)}.`, 'error'); $('depositAmount').focus(); return; }
+    const cb = cashbackOf(amount);
     const ok = await confirmDialog({
       title: 'Fund your wallet',
-      rows: [['Wallet credit', naira(amount)], ['Service fee (3%)', naira(feeOf(amount))], ['You pay', naira(amount + feeOf(amount))]],
-      warning: `${BANK_NOTE} Wallet funds can only be used to buy numbers on SPLUG and cannot be withdrawn.`,
+      rows: [['Wallet credit', naira(amount)], [`Service fee (${FEE_PCT}%)`, naira(feeOf(amount))], ['You pay', naira(amount + feeOf(amount))], ...(cb ? [['Cashback', naira(cb)]] : [])],
+      warning: `${BANK_NOTE ? BANK_NOTE + ' ' : ''}Wallet funds can only be used to buy numbers on SPLUG and cannot be withdrawn.`,
       confirmText: 'Continue to payment',
     });
     if (!ok) return;

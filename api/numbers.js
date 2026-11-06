@@ -5,6 +5,7 @@ const fivesim = require('../lib/fivesim');
 const { requireUser } = require('../lib/auth');
 const { handler, ok } = require('../lib/respond');
 const orders = require('../lib/orders');
+const settings = require('../lib/settings');
 
 function providerName(value) {
   return ['budget', 'cheap', 'fivesim'].includes(value) ? 'fivesim' : 'smspool';
@@ -48,6 +49,11 @@ module.exports = handler(async (req, res) => {
   const { user, token } = await requireUser(req);
   const action = req.query.action;
   const provider = providerName(req.query.provider || req.body?.provider);
+  const cfg = await settings.load();
+  if (['quote', 'purchase'].includes(action)) {
+    if (cfg.maintenance_mode) { const e = new Error(cfg.maintenance_message || 'SPLUG is under maintenance. Please try again shortly.'); e.status = 503; e.safe = true; throw e; }
+    if (!cfg[`${routeOf(provider)}_enabled`]) { const e = new Error(`The ${routeOf(provider) === 'budget' ? 'Budget' : 'Priority'} route is paused right now. Please switch route.`); e.status = 409; throw e; }
+  }
 
   if (action === 'countries') {
     const countries = provider === 'fivesim' ? await fivesim.countries() : await smspool.countries();

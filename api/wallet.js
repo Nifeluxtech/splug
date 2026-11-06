@@ -8,7 +8,8 @@ const afrstar = require('../lib/afrstar');
 const { requireUser } = require('../lib/auth');
 const { handler, ok } = require('../lib/respond');
 
-const { MIN_DEPOSIT, serviceFee } = require('../lib/fees');
+const { serviceFee } = require('../lib/fees');
+const settings = require('../lib/settings');
 
 module.exports = handler(async (req, res) => {
   const { user, token } = await requireUser(req);
@@ -25,15 +26,21 @@ module.exports = handler(async (req, res) => {
 
   // ---- deposit (Afrstar hosted checkout) ----
   if (action === 'deposit') {
+    const cfg = await settings.load();
+    if (cfg.maintenance_mode) { const e = new Error(cfg.maintenance_message || 'SPLUG is under maintenance.'); e.status = 503; e.safe = true; throw e; }
+    if (!cfg.deposits_enabled) { const e = new Error('Wallet funding is paused right now. Please try again later.'); e.status = 409; throw e; }
     const amount = parseFloat(req.body?.amount);
-    if (!amount || amount < MIN_DEPOSIT) {
-      const e = new Error(`Minimum deposit is ₦${MIN_DEPOSIT.toLocaleString()}`); e.status = 400; throw e;
+    if (!amount || amount < cfg.min_deposit) {
+      const e = new Error(`Minimum deposit is ₦${Number(cfg.min_deposit).toLocaleString()}`); e.status = 400; throw e;
+    }
+    if (cfg.max_deposit > 0 && amount > cfg.max_deposit) {
+      const e = new Error(`Maximum deposit is ₦${Number(cfg.max_deposit).toLocaleString()}`); e.status = 400; throw e;
     }
     const credit = Number(amount.toFixed(2));
-    const fee = serviceFee(credit);
+    const fee = serviceFee(credit, cfg.deposit_fee_percent);
     const total = Number((credit + fee).toFixed(2));
     // DPF- marks a deposit whose checkout total includes the service fee (wallet is credited the amount only).
-    const reference = `DPF-${user.id.slice(0, 8)}-${Date.now()}`;
+    const reference = `DPF-${user.id.slice(0, 8)}-${Date.now()}-F${fee}`;
     const site = (process.env.SITE_URL || `https://${req.headers.host}`).replace(/\/$/, '');
     const profile = await supabase.selectOne('profiles', { select: '*' }, token).catch(() => null);
     const name = profile?.username || user.user_metadata?.username || (user.email || 'SPLUG user').split('@')[0];
