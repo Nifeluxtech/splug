@@ -4,6 +4,18 @@ const API = {
   auth: '/api/auth', numbers: '/api/numbers', wallet: '/api/wallet', history: '/api/history', admin: '/api/admin',
 };
 
+/* ---------- Meta Pixel (ads measurement) ---------- */
+const META_PIXEL_ID = '2386692578768838';
+(function (f, b, e, v, n, t, sc) {
+  if (location.pathname.startsWith('/admin') || f.fbq) return;
+  n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
+  if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = [];
+  t = b.createElement(e); t.async = !0; t.src = v;
+  sc = b.getElementsByTagName(e)[0]; sc.parentNode.insertBefore(t, sc);
+  f.fbq('init', META_PIXEL_ID); f.fbq('track', 'PageView');
+})(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+function trackPixel(event, params) { try { if (window.fbq) window.fbq('track', event, params || {}); } catch (_) {} }
+
 const store = {
   get token() { return localStorage.getItem('splug_token'); },
   set token(v) { v ? localStorage.setItem('splug_token', v) : localStorage.removeItem('splug_token'); },

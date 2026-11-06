@@ -95,6 +95,8 @@
     setLoading(btn, true, 'Creating payment…');
     try {
       const data = await apiCall(API.wallet, { method: 'POST', query: { action: 'deposit' }, body: { amount } });
+      trackPixel('InitiateCheckout', { value: amount, currency: 'NGN', content_name: 'Wallet funding' });
+      try { sessionStorage.setItem('splug_pending_deposit', String(amount)); } catch (_) {}
       if (data.paymentUrl) { toast('Taking you to secure payment…'); window.location.href = data.paymentUrl; return; }
       toast(`Funding request ${data.reference} created.`);
       loadTxns();
@@ -105,6 +107,8 @@
   /* ---------- returning from the payment page ---------- */
   if (params.get('deposit') === 'done') {
     history.replaceState(null, '', location.pathname);
+    let paid = 0; try { paid = Number(sessionStorage.getItem('splug_pending_deposit')) || 0; sessionStorage.removeItem('splug_pending_deposit'); } catch (_) {}
+    if (paid > 0) trackPixel('Purchase', { value: paid, currency: 'NGN', content_name: 'Wallet funding' });
     toast('Thanks. Your balance updates as soon as the payment is confirmed.');
     setTimeout(() => { loadBalance(); loadTxns(); }, 4000);
   }

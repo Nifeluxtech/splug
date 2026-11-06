@@ -52,6 +52,7 @@ function nextUrl() { const n = new URLSearchParams(location.search).get('next') 
       const data = await apiCall(API.auth, { method: 'POST', body });
       store.token = data.access_token;
       store.refreshToken = data.refresh_token;
+      if (isRegister) { trackPixel('CompleteRegistration', { content_name: 'SPLUG account', status: true }); await new Promise((r) => setTimeout(r, 400)); }
       window.location.href = nextUrl();
     } catch (err) {
       showError(err.message);
