@@ -73,7 +73,7 @@ module.exports = handler(async (req, res) => {
     const me = await supabase.selectAdmin('profiles', { id: `eq.${user.id}`, select: 'referral_code', limit: '1' });
     const invited = await supabase.selectAdmin('profiles', { referred_by: `eq.${user.id}`, select: 'username,created_at', order: 'created_at.desc', limit: '200' });
     const rewards = await supabase.selectAdmin('transactions', { user_id: `eq.${user.id}`, type: 'eq.referral', reference: 'like.REF-*', select: 'amount,description,created_at', order: 'created_at.desc', limit: '200' });
-    const site = (process.env.SITE_URL || `https://${req.headers.host}`).replace(/\/$/, '');
+    const site = (process.env.PUBLIC_SITE_URL || 'https://splug.nifelux.com').replace(/\/$/, '');
     const code = me?.[0]?.referral_code || '';
     const mask = (u) => { const s = String(u || 'user'); return s.length <= 3 ? s[0] + '**' : s.slice(0, 2) + '***' + s.slice(-1); };
     return ok({
