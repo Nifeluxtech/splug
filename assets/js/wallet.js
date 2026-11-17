@@ -3,7 +3,7 @@
 (async function () {
   const $ = (id) => document.getElementById(id);
   let MIN_DEPOSIT = 500, MAX_DEPOSIT = 0, FEE_PCT = 3, CFG = {};
-  let BANK_NOTE = 'OPay and PalmPay are currently unavailable for deposits. Please pay with any other bank.';
+  let BANK_NOTE = '';
   const feeOf = (a) => Math.ceil(a * FEE_PCT / 100);
   const cashbackOf = (a) => {
     if (!CFG.cashback_enabled || !(CFG.cashback_percent > 0) || a < Number(CFG.cashback_min_deposit || 0)) return 0;
@@ -109,8 +109,22 @@
     history.replaceState(null, '', location.pathname);
     let paid = 0; try { paid = Number(sessionStorage.getItem('splug_pending_deposit')) || 0; sessionStorage.removeItem('splug_pending_deposit'); } catch (_) {}
     if (paid > 0) trackPixel('Purchase', { value: paid, currency: 'NGN', content_name: 'Wallet funding' });
+    const ref = params.get('ref');
     toast('Thanks. Your balance updates as soon as the payment is confirmed.');
-    setTimeout(() => { loadBalance(); loadTxns(); }, 4000);
+    if (ref) {
+      // ask the server to check the payment with the partner now, a few times while it settles
+      const confirm = async (tries) => {
+        try {
+          const r = await apiCall(API.wallet, { method: 'POST', query: { action: 'confirm' }, body: { reference: ref } });
+          if (r.status === 'success') { toast('Payment confirmed. Your wallet has been funded.'); loadBalance(); loadTxns(); return; }
+          if (r.status === 'failed') { toast('That payment did not go through. You were not charged for it on SPLUG.', 'error'); loadTxns(); return; }
+        } catch (_) {}
+        if (tries > 1) setTimeout(() => confirm(tries - 1), 5000); else { loadBalance(); loadTxns(); }
+      };
+      confirm(6);
+    } else {
+      setTimeout(() => { loadBalance(); loadTxns(); }, 4000);
+    }
   }
 
   await Promise.all([loadBalance(), loadTxns()]);
