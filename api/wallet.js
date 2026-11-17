@@ -1,10 +1,16 @@
 // SPLUG API #3/5 — wallet (payment partner gateway, naira)
 // GET  /api/wallet?action=balance                  → balance
 // POST /api/wallet?action=deposit                  → create deposit order (min ₦500, plus 3% service fee)
+// POST /api/wallet?action=confirm {reference}      → re-check a Korapay deposit after returning from checkout
+// Gateway: Korapay (YOLOTASK's Korapay account) once KORAPAY_SECRET_KEY is set. PAYMENT_GATEWAY=afrstar switches back.
 // Wallet is fund-only: balances are spent on numbers and are not withdrawable.
 
 const supabase = require('../lib/supabase');
 const afrstar = require('../lib/afrstar');
+const korapay = require('../lib/korapay');
+const { settleKorapayDeposit } = require('../lib/deposits');
+// Korapay whenever its key is set (unless PAYMENT_GATEWAY=afrstar); Afrstar until then, so funding never breaks mid-switch.
+const GATEWAY = (process.env.PAYMENT_GATEWAY || '').trim().toLowerCase() === 'afrstar' || !korapay.isConfigured() ? 'afrstar' : 'korapay';
 const { requireUser } = require('../lib/auth');
 const { handler, ok } = require('../lib/respond');
 
@@ -24,7 +30,7 @@ module.exports = handler(async (req, res) => {
     });
   }
 
-  // ---- deposit (Afrstar hosted checkout) ----
+  // ---- deposit (hosted checkout: Korapay, or Afrstar when PAYMENT_GATEWAY=afrstar) ----
   if (action === 'deposit') {
     const cfg = await settings.load();
     if (cfg.maintenance_mode) { const e = new Error(cfg.maintenance_message || 'SPLUG is under maintenance.'); e.status = 503; e.safe = true; throw e; }
@@ -45,16 +51,9 @@ module.exports = handler(async (req, res) => {
     const profile = await supabase.selectOne('profiles', { select: '*' }, token).catch(() => null);
     const name = profile?.username || user.user_metadata?.username || (user.email || 'SPLUG user').split('@')[0];
 
-    const gateway = await afrstar.createDeposit({
-      reference,
-      amount: total,
-      name,
-      email: user.email || '',
-      phone: process.env.AFRSTAR_DEFAULT_PHONE || '08000000000',
-      redirectUrl: `${site}/wallet.html?deposit=done`,
-    });
+    const redirectUrl = `${site}/wallet.html?deposit=done&ref=${encodeURIComponent(reference)}`;
 
-    // record as pending; the callback at /api/gateway credits the wallet once Afrstar confirms payment
+    // record as pending first, so a fast webhook always finds the row; the callback at /api/gateway credits the wallet
     await supabase.insert('transactions', {
       user_id: user.id,
       type: 'deposit',
@@ -64,7 +63,30 @@ module.exports = handler(async (req, res) => {
       description: `Wallet deposit (₦${credit.toLocaleString()} + ₦${fee.toLocaleString()} service fee)`,
     });
 
+    let gateway;
+    try {
+      gateway = GATEWAY === 'afrstar'
+        ? await afrstar.createDeposit({ reference, amount: total, name, email: user.email || '', phone: process.env.AFRSTAR_DEFAULT_PHONE || '08000000000', redirectUrl })
+        : await korapay.createDeposit({ reference, amount: total, name, email: user.email || '', redirectUrl, notificationUrl: `${site}/api/gateway` });
+    } catch (err) {
+      // checkout never opened: close the pending row so it does not sit in the admin queue
+      const rows = await supabase.selectAdmin('transactions', { reference: `eq.${reference}`, limit: '1', select: 'id' }).catch(() => null);
+      if (rows && rows[0]) await supabase.rpc('finalize_txn', { p_txn: rows[0].id, p_success: false }).catch(() => null);
+      throw err;
+    }
+
     return ok({ reference, amount: credit, fee, total, paymentUrl: gateway.pay_url || null });
+  }
+
+  // ---- confirm a Korapay deposit when the customer comes back from checkout ----
+  if (action === 'confirm') {
+    const reference = String(req.body?.reference || req.query.reference || '').trim();
+    if (!/^D(PF|EP)-[A-Za-z0-9-]+$/.test(reference)) { const e = new Error('Unknown payment reference'); e.status = 400; throw e; }
+    if (GATEWAY !== 'korapay') return ok({ reference, status: 'pending', amount: null });
+    let result;
+    try { result = await settleKorapayDeposit(reference, user.id); }
+    catch (err) { console.error('[splug] deposit confirm failed:', reference, err.message); result = { status: 'pending' }; }
+    return ok({ reference, status: result.status, amount: result.amount ?? null });
   }
 
   // referral programme: my code, link, invitees and earnings

@@ -1,5 +1,8 @@
-// SPLUG — Afrstar collection (deposit) callback
-// POST /api/gateway   — set this URL as the Collection callback in the Afrstar merchant portal.
+// SPLUG — payment partner deposit callbacks (Korapay webhook + Afrstar collection callback)
+// POST /api/gateway
+//   Korapay: sent automatically (each charge carries notification_url = SITE_URL/api/gateway). Signed with
+//            x-korapay-signature; the charge is then re-checked with Korapay before the wallet is credited.
+//   Afrstar: the Collection callback URL in the Afrstar portal (kept so older Afrstar deposits still settle).
 // Wallet is fund-only: payouts/withdrawals are not supported, so only deposit transactions are handled here.
 // Verifies the MD5 signature, matches the stored order, applies the result once, and replies with plain text "success".
 
@@ -7,6 +10,10 @@ const supabase = require('../lib/supabase');
 const afrstar = require('../lib/afrstar');
 const { checkoutTotal } = require('../lib/fees');
 
+const korapay = require('../lib/korapay');
+const { settleKorapayDeposit } = require('../lib/deposits');
+
+const json = (res, code, body) => { res.statusCode = code; res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(body)); };
 const text = (res, code, body) => { res.statusCode = code; res.setHeader('Content-Type', 'text/plain'); res.end(body); };
 
 module.exports = async (req, res) => {
@@ -14,6 +21,16 @@ module.exports = async (req, res) => {
   try {
     let ev = req.body || {};
     if (typeof ev === 'string') { try { ev = JSON.parse(ev); } catch { ev = {}; } }
+
+    // ---- Korapay webhook ----
+    const kSig = req.headers['x-korapay-signature'];
+    if (kSig || (typeof ev.event === 'string' && ev.data && typeof ev.data === 'object')) {
+      if (!korapay.verifySignature(ev, kSig)) return json(res, 401, { ok: false });
+      const event = String(ev.event || '').toLowerCase();
+      if (!event.startsWith('charge.')) return json(res, 200, { ok: true, ignored: true }); // SPLUG makes no payouts
+      await settleKorapayDeposit(ev.data.reference || ev.data.payment_reference);
+      return json(res, 200, { ok: true });
+    }
 
     const reference = ev.order_sn;
     if (!reference || !ev.platform_osn) return text(res, 400, 'missing order');
@@ -41,6 +58,7 @@ module.exports = async (req, res) => {
     }
     return text(res, 200, 'success');
   } catch (e) {
-    return text(res, 500, 'error'); // non-success so Afrstar retries
+    console.error('[splug] payment callback failed:', e.message);
+    return text(res, 500, 'error'); // non-success so the gateway retries
   }
 };
