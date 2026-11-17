@@ -39,7 +39,7 @@
     if (CFG.deposit_fee_percent != null) FEE_PCT = Number(CFG.deposit_fee_percent);
     if (CFG.bank_notice != null) BANK_NOTE = CFG.bank_notice;
     const n = document.getElementById('bankNotice');
-    if (n) { if (BANK_NOTE) n.querySelector('span').textContent = BANK_NOTE; else n.hidden = true; }
+    if (n) { if (BANK_NOTE) { n.querySelector('span').textContent = BANK_NOTE; n.hidden = false; } else n.hidden = true; }
     $('depositAmount').min = String(MIN_DEPOSIT);
     syncFee();
   } catch {}
